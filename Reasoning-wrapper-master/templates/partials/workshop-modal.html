@@ -1,0 +1,82 @@
+<div id="workshop-modal">
+    <div class="modal-card" style="width:min(1100px,95vw);height:min(86vh,760px)">
+      <div class="modal-header">
+        <h3>Agent Workshop</h3>
+        <button id="workshop-close" class="hdr-btn modal-close">✕</button>
+      </div>
+      <div class="modal-body" style="display:grid;grid-template-columns:280px 1fr;gap:14px;">
+        <div style="border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--header-bg);display:flex;flex-direction:column;gap:8px;">
+          <button id="workshop-new-mode" class="hdr-btn" style="width:100%;">+ New Custom Mode</button>
+          <div id="workshop-mode-list" style="display:flex;flex-direction:column;gap:6px;max-height:58vh;overflow:auto;"></div>
+        </div>
+
+        <div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg);display:flex;flex-direction:column;gap:10px;overflow:auto;">
+          <label style="font-size:0.72rem;color:var(--text-muted);">MODE NAME</label>
+          <input id="workshop-mode-name" type="text" style="padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--header-bg);color:var(--text);" placeholder="Story Chat / Coach Mode / Mentor Mode" />
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button id="workshop-add-agent" class="hdr-btn">+ Add Agent</button>
+            <button id="workshop-save-mode" class="hdr-btn">Save Mode</button>
+            <button id="workshop-export-mode" class="hdr-btn">Export JSON</button>
+            <button id="workshop-import-mode" class="hdr-btn">Import JSON</button>
+            <label class="toggle-wrapper" title="Enable autonomous Pulse Loop for this mode">
+              <span class="toggle-switch">
+                <input type="checkbox" id="workshop-pulse-loop-checkbox">
+                <span class="toggle-slider"></span>
+              </span>
+              Pulse Loop
+            </label>
+            <label class="toggle-wrapper" title="Lock specific models for each step in this mode">
+              <span class="toggle-switch">
+                <input type="checkbox" id="workshop-per-step-models-checkbox">
+                <span class="toggle-slider"></span>
+              </span>
+              Lock Step Models
+            </label>
+          </div>
+          
+          <div id="workshop-pulse-config" style="display:none; flex-direction:column; gap:8px; border:1px solid rgba(16, 185, 129, 0.4); border-radius:8px; background:rgba(16, 185, 129, 0.05); padding:10px; margin-top:4px;">
+            <div style="font-size:0.7rem; font-weight:700; color:#10b981;">PULSE LOOP CONFIGURATION</div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <div style="display:flex; flex-direction:column; gap:4px;">
+                <label style="font-size:0.65rem; color:var(--text-muted);">WAIT TIME</label>
+                <div style="display:flex; gap:4px;">
+                  <input type="number" id="workshop-pulse-interval" value="30" min="1" style="width:60px; padding:4px; border-radius:4px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:0.75rem;">
+                  <select id="workshop-pulse-unit" style="padding:4px; border-radius:4px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:0.75rem;">
+                    <option value="seconds">Seconds</option>
+                    <option value="minutes">Minutes</option>
+                    <option value="hours">Hours</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
+                <label style="font-size:0.65rem; color:var(--text-muted);">PULSE PROMPT</label>
+                <textarea id="workshop-pulse-prompt" rows="1" style="width:100%; padding:6px; border-radius:4px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:0.75rem; resize:vertical; outline:none;" placeholder="Continue iteration based on the synthesis."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- hidden btns kept for JS compat -->
+          <button id="workshop-clone-mode" style="display:none;"></button>
+          <button id="workshop-delete-mode" style="display:none;"></button>
+          <button id="workshop-use-mode" style="display:none;"></button>
+          <div id="workshop-meta" style="font-size:0.72rem;color:var(--text-muted);"></div>
+
+          <!-- Circuitboard Wiring Panel -->
+          <div id="workshop-circuit-container" style="display:none; flex-direction:column; gap:8px; border:1px solid var(--border); border-radius:12px; background:rgba(0,0,0,0.2); padding:12px; overflow:hidden; flex-shrink:0;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.75rem; font-weight:600; color:var(--primary); letter-spacing:0.05em; display:flex; align-items:center; gap:6px; user-select:none;">
+                🔌 AGENT WIRING CIRCUITBOARD
+              </span>
+              <span style="font-size:0.6rem; opacity:0.6; user-select:none;">Drag nodes freely · Click 🩷 then 🩵 to wire · Double-click wire to cut · Right-click mode to clone</span>
+            </div>
+            <div id="workshop-circuit-canvas-wrap" style="position:relative; width:100%; height:200px; background:radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px); background-size:16px 16px; border-radius:8px; border:1px dashed var(--border); overflow:hidden; cursor:crosshair;">
+              <svg id="workshop-circuit-svg" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:visible;"></svg>
+              <div id="workshop-circuit-nodes" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></div>
+            </div>
+          </div>
+
+          <div id="workshop-agents" style="display:flex;flex-direction:column;gap:10px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>

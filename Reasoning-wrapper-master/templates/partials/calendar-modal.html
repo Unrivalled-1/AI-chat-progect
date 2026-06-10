@@ -1,0 +1,99 @@
+<div id="calendar-modal">
+    <div class="modal-card cal-modal-card">
+      <!-- Header -->
+      <div class="modal-header cal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1.3rem;">🗓</span>
+          <h3 style="margin:0;font-size:1rem;letter-spacing:.01em;">Calendar</h3>
+        </div>
+        <div id="cal-stats-bar" style="display:flex;gap:8px;align-items:center;flex:1;margin:0 16px;flex-wrap:wrap;"></div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button id="cal-fullscreen-btn" class="hdr-btn" title="Fullscreen">⛶</button>
+          <button id="calendar-close" class="hdr-btn modal-close">✕</button>
+        </div>
+      </div>
+
+      <div class="modal-body cal-body">
+
+        <!-- LEFT PANEL: month grid + new event form -->
+        <div class="cal-left-panel">
+
+          <!-- Month mini-grid -->
+          <div class="cal-month-widget">
+            <div class="cal-month-nav">
+              <button id="cal-prev-month" class="hdr-btn cal-nav-btn">‹</button>
+              <span id="cal-month-label" style="font-weight:600;font-size:.85rem;"></span>
+              <button id="cal-next-month" class="hdr-btn cal-nav-btn">›</button>
+            </div>
+            <div class="cal-grid-header">
+              <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+            </div>
+            <div id="cal-day-grid" class="cal-day-grid"></div>
+          </div>
+
+          <!-- New event form -->
+          <div class="cal-form-section">
+            <div class="cal-form-title">New Scheduled Action</div>
+
+            <div class="cal-field-group">
+              <label class="cal-label">When</label>
+              <input id="sched-run-at" type="datetime-local" class="cal-input" />
+            </div>
+
+            <div class="cal-field-group">
+              <label class="cal-label">Message / Task</label>
+              <textarea id="sched-message" placeholder="What should the agent do?" class="cal-input cal-textarea"></textarea>
+            </div>
+
+            <div class="cal-field-row">
+              <div class="cal-field-group" style="flex:1;">
+                <label class="cal-label">Mode</label>
+                <select id="sched-mode" class="cal-input">
+                  <option value="reasoning">Reasoning</option>
+                  <option value="reasoning_fast">Fast Reasoning</option>
+                  <option value="conversational">Conversational</option>
+                  <option value="direct">Direct</option>
+                  <option value="reminder">Reminder only</option>
+                </select>
+              </div>
+              <div class="cal-field-group" style="flex:1;">
+                <label class="cal-label">Repeat</label>
+                <select id="sched-repeat" class="cal-input">
+                  <option value="none">One-time</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="cal-field-group">
+              <label class="cal-label">Target Agent <span style="opacity:.5;">(optional)</span></label>
+              <input id="sched-target-agent" type="text" placeholder="e.g. Architect" class="cal-input" />
+            </div>
+
+            <div class="cal-field-group">
+              <label class="cal-label">Focus note <span style="opacity:.5;">(optional)</span></label>
+              <input id="sched-note" type="text" placeholder="Extra context or instruction" class="cal-input" />
+            </div>
+
+            <button id="sched-create-btn" class="cal-create-btn">＋ Schedule</button>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: event list -->
+        <div class="cal-right-panel">
+          <div class="cal-list-header">
+            <span id="cal-list-day-label" style="font-weight:600;font-size:.85rem;">All Events</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input id="cal-search" class="cal-input" placeholder="Search…" style="width:130px;padding:4px 8px;font-size:.72rem;" />
+              <button id="cal-filter-all" class="cal-filter-btn active" data-filter="all">All</button>
+              <button id="cal-filter-upcoming" class="cal-filter-btn" data-filter="scheduled">Upcoming</button>
+              <button id="cal-filter-done" class="cal-filter-btn" data-filter="done">Done</button>
+            </div>
+          </div>
+          <div id="sched-list" class="cal-event-list"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>

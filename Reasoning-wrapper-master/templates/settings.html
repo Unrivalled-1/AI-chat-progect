@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Manager</title>
+    <style>
+        body { font-family: Inter, Arial, sans-serif; background: #0b1020; color: #e6ebff; margin: 0; }
+        .wrap { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+        label { display: block; font-size: 0.85rem; margin: 10px 0 6px; color: #a7b2d9; }
+        input, select, button { width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: #121a33; color: #e6ebff; }
+        button { cursor: pointer; background: #2b3a78; }
+        .chip-row { display: flex; flex-wrap: wrap; gap: 10px; }
+        .chip { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16); border-radius: 10px; padding: 10px; min-width: 240px; flex: 1 1 260px; }
+        .chip-title { font-size: 0.86rem; margin-bottom: 8px; color: #dce6ff; }
+        .chip-meta { font-size: 0.75rem; color: #9fb0e4; word-break: break-all; margin-bottom: 8px; }
+        .muted { color: #9aa8d8; font-size: 0.85rem; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .remove { width: auto; background: #6b1d33; border-color: #8d2b47; }
+        .toggle { width: auto; background: #1f4f35; border-color: #2c6e4a; margin-right: 8px; }
+        .back { display: inline-block; margin-bottom: 12px; color: #b8c7ff; }
+        .actions { display: flex; gap: 8px; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <a class="back" href="/">← Back to chat</a>
+        <h1>Model Manager</h1>
+        <p class="muted">Add custom models (id + provider). Built-in models cannot be removed.</p>
+
+        <div class="card">
+            <form id="model-form">
+                <div class="row">
+                    <div>
+                        <label for="model-id">Model ID</label>
+                        <input type="text" id="model-id" name="model-id" placeholder="e.g. moonshotai/Kimi-K2.5:cheapest" required>
+                    </div>
+                    <div>
+                        <label for="model-name">Display Name</label>
+                        <input type="text" id="model-name" name="model-name" placeholder="e.g. Kimi K2.5" required>
+                    </div>
+                </div>
+
+                <label for="model-provider">Provider</label>
+                <select id="model-provider" name="model-provider">
+                    <option value="huggingface">HuggingFace</option>
+                    <option value="gemini">Gemini</option>
+                    <option value="local">Local (Transformers)</option>
+                </select>
+
+                <label for="model-credit">Credit Multiplier</label>
+                <input type="number" id="model-credit" name="model-credit" value="1.0" step="0.1" min="0">
+
+                <div style="margin-top: 12px;">
+                    <button type="submit">Add Model</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Available Models</h2>
+            <p class="muted">All built-in and custom models.</p>
+            <div class="chip-row" id="available-model-list"></div>
+        </div>
+
+        <div class="card">
+            <h2>Models In Dropdown</h2>
+            <p class="muted">These appear in the chat model selector.</p>
+            <div class="chip-row" id="enabled-model-list"></div>
+        </div>
+    </div>
+    <script src="/static/settings.js"></script>
+</body>
+</html>

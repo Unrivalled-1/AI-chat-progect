@@ -1,0 +1,46 @@
+<div id="mission-modal">
+    <div class="modal-card" style="width:min(1200px,96vw);height:min(88vh,860px)">
+      <div class="modal-header">
+        <h3>Agent Mission Control</h3>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:0.7rem;color:var(--text-muted);">
+          <span id="mc-run-id">Run: none</span>
+          <span id="mc-run-status">Status: idle</span>
+        </div>
+        <button id="mission-close" class="hdr-btn modal-close">✕</button>
+      </div>
+      <div class="modal-body" style="display:grid;grid-template-columns:1.3fr 1fr;grid-template-rows:1fr 1fr;gap:12px;overflow:auto;">
+        <section style="border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--header-bg);display:flex;flex-direction:column;min-height:240px;">
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px;">Run Graph</div>
+          <div id="mc-run-graph" style="display:flex;flex-direction:column;gap:6px;overflow:auto;font-size:0.75rem;"></div>
+        </section>
+
+        <section style="border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--header-bg);display:flex;flex-direction:column;min-height:240px;">
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px;">Inspector</div>
+          <pre id="mc-inspector" style="white-space:pre-wrap;overflow:auto;flex:1;background:var(--code-bg);padding:8px;border-radius:6px;border:1px solid var(--border);font-size:0.7rem;">Select a node in the run graph.</pre>
+        </section>
+
+        <section style="border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--header-bg);display:flex;flex-direction:column;gap:8px;min-height:240px;">
+          <div style="font-size:0.75rem;color:var(--text-muted);">Intervention Controls</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button id="mc-pause-btn" class="hdr-btn">Pause</button>
+            <button id="mc-resume-btn" class="hdr-btn">Resume</button>
+          </div>
+          <input id="mc-approve-note" type="text" placeholder="Approval note" style="padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);" />
+          <button id="mc-approve-btn" class="hdr-btn">Approve</button>
+          <input id="mc-reroute-agent" type="text" placeholder="Target agent (e.g. Skeptic)" style="padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);" />
+          <textarea id="mc-reroute-note" placeholder="Reroute instruction" style="min-height:74px;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);"></textarea>
+          <button id="mc-reroute-btn" class="hdr-btn">Reroute</button>
+          <button id="mc-rerun-agent-btn" class="hdr-btn">Single-Agent Rerun</button>
+        </section>
+
+        <section style="border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--header-bg);display:flex;flex-direction:column;gap:8px;min-height:240px;">
+          <div style="font-size:0.75rem;color:var(--text-muted);">Compare & Branch</div>
+          <input id="mc-compare-run-id" type="text" placeholder="Compare with run id" style="padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);" />
+          <button id="mc-compare-btn" class="hdr-btn">Compare Runs</button>
+          <input id="mc-branch-checkpoint" type="text" placeholder="Resume from checkpoint (optional)" style="padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);" />
+          <button id="mc-branch-btn" class="hdr-btn">Create Branch</button>
+          <pre id="mc-compare-output" style="white-space:pre-wrap;overflow:auto;flex:1;background:var(--code-bg);padding:8px;border-radius:6px;border:1px solid var(--border);font-size:0.7rem;">Comparison output appears here.</pre>
+        </section>
+      </div>
+    </div>
+  </div>

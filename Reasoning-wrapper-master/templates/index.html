@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Vibe Coding Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+</head>
+
+<body>
+  <div id="electron-titlebar" style="display: none; -webkit-app-region: drag; height: 38px; align-items: center; padding: 0 16px; background: rgba(0, 0, 0, 0.4); border-bottom: 1px solid var(--border); font-size: 0.8rem; font-weight: 600; color: var(--text-muted); letter-spacing: 0.05em; z-index: 9999; width: 100%;">
+    <span class="titlebar-title">AI CHAT DASHBOARD</span>
+    <div class="titlebar-controls" style="margin-left: auto; display: flex; gap: 8px; -webkit-app-region: no-drag;">
+      <button class="control-btn min" id="fa-min-btn" title="Minimize"></button>
+      <button class="control-btn max" id="fa-max-btn" title="Maximize"></button>
+      <button class="control-btn close" id="fa-close-btn" title="Close"></button>
+    </div>
+  </div>
+
+  <!-- Background orb decorations -->
+  <div class="bg-orbs" aria-hidden="true" style="position:fixed;pointer-events:none;z-index:0;inset:0;overflow:hidden;">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <header>
+    <div class="header-left">
+      <div class="brand-lockup" aria-label="Vibe Engine brand">
+        <span class="logo-mark">⬡</span>
+        <span class="logo-text">Vibe Engine</span>
+      </div>
+      <button id="kill-switch-btn" class="hdr-btn kill-switch" style="color: #f87171; border-color: rgba(248, 113, 113, 0.3);"
+        title="Disable all API calls">Kill Switch</button>
+    </div>
+    <div class="header-center">
+      <button id="up-level-btn" class="hdr-btn" type="button" title="Go up one level" aria-label="Up one level">
+        <span class="up-arrow">↑</span>
+        <span class="up-label">Up</span>
+      </button>
+      <span id="update-counter"
+        style="margin-left:8px;font-size:0.75rem;color:var(--primary);font-weight:600;padding:2px 8px;border:1px solid var(--border);border-radius:12px;background:var(--panel-bg);">Updates:
+        0</span>
+    </div>
+    <div class="header-right">
+      <button id="active-agents-btn" class="hdr-btn" style="position:relative;"><span
+          class="ui-icon-gray">👥</span>Active Agents <span id="active-agents-count"
+          style="background:var(--primary);color:#fff;border-radius:10px;padding:0 6px;margin-left:4px;font-size:0.65rem;">0</span></button>
+    </div>
+  </header>
+
+  <div id="main" style="position: relative;">
+    <button id="menu-btn" class="hdr-btn" aria-label="Toggle Sidebar"></button>
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div style="padding: 10px; border-bottom: 1px solid var(--border);">
+        <button id="new-chat-sidebar" class="hdr-btn" style="width: 100%; text-align: center;"><span
+            class="ui-icon-gray">✚</span>New Chat</button>
+      </div>
+      <div class="sidebar-view-tag" id="sidebar-view-tag">Viewing: Mission Hub</div>
+      <div class="sidebar-header">Past Chats</div>
+      <div style="padding: 10px; border-bottom: 1px solid var(--border); display:flex; flex-direction:column; gap:8px;">
+        <button id="profile-btn" class="hdr-btn" style="width:100%; text-align:left;"><span
+            class="ui-icon-gray">👤</span>Profile</button>
+        {% if not current_user.is_authenticated %}
+        <a id="sidebar-signin-btn" class="hdr-btn" href="/login"
+          style="width:100%;text-align:left;text-decoration:none;display:block;box-sizing:border-box;"><span
+            class="ui-icon-gray">🔑</span>Sign in to account</a>
+        {% endif %}
+        <button id="settings-btn" class="hdr-btn" style="width:100%; text-align:left;"><span
+            class="ui-icon-gray">⚙</span>Settings</button>
+        <button id="projects-btn" class="hdr-btn" style="width:100%; text-align:left;"><span
+            class="ui-icon-gray">📁</span>Projects</button>
+        <button id="workshop-btn" class="hdr-btn" style="width:100%; text-align:left;"><span
+            class="ui-icon-gray">🧪</span>Workshop</button>
+        <button id="calendar-btn" class="hdr-btn" style="width:100%; text-align:left;"><span
+            class="ui-icon-gray">🗓</span>Calendar</button>
+        <button id="memory-btn" class="hdr-btn" style="width:100%; text-align:left;"><span
+            class="ui-icon-gray">🧠</span>Memory</button>
+        <button id="toggle-sandbox" class="hdr-btn" style="width:100%; text-align:left;"><span
+            class="ui-icon-gray">▣</span>Sandbox</button>
+        <button id="mission-btn-sidebar" class="hdr-btn" style="width:100%; text-align:left;"><span
+            class="ui-icon-gray">🛰</span>Mission Hub</button>
+      </div>
+      <div class="history-list" id="history-list"></div>
+    </div>
+
+    <div id="chat-pane">
+      <div id="thinking-bar"></div>
+      <div id="chat-box">
+        <section id="welcome-screen" aria-label="Welcome to Vibe Engine">
+          <div class="welcome-head">
+            <div class="welcome-logo" aria-label="Vibe Engine logo">
+              <span class="logo-mark">⬡</span>
+              <span class="logo-text">Vibe Engine</span>
+            </div>
+            <div>
+              <div class="welcome-title">Welcome to Vibe Engine</div>
+              <div class="welcome-subtitle">Your professional AI agent workspace. Choose the model and reasoning mode
+                below, then send your first message to start a focused, multi-agent conversation.</div>
+              <div class="welcome-suggestions" id="welcome-suggestions">
+                <button type="button" class="suggest-chip" data-suggest="app">🚀 Make an app</button>
+                <button type="button" class="suggest-chip" data-suggest="debug">🛠️ Debug my code</button>
+                <button type="button" class="suggest-chip" data-suggest="plan">🧭 Create a project plan</button>
+                <button type="button" class="suggest-chip" data-suggest="learn">📚 Explain a concept</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <form id="chat-form" autocomplete="off">
+        <div class="composer-controls">
+          <!-- Agent Extreme toggle -->
+          <label class="extreme-toggle-wrap" title="Switch to Agent Extreme orchestration mode" id="extreme-toggle-label">
+            <input type="checkbox" id="agent-extreme-toggle" />
+            <span class="extreme-toggle-track">
+              <span class="extreme-toggle-thumb"></span>
+            </span>
+            <span class="extreme-toggle-label">Extreme Mode</span>
+          </label>
+
+          <!-- Extreme mode: mode selector (hidden in conversational) -->
+          <div id="extreme-mode-bar" style="display:none; align-items:center; gap:8px;">
+            <select id="extreme-mode-select" class="extreme-mode-select" title="Select agent workflow"></select>
+          </div>
+
+          <!-- Legacy mode select (hidden from user; kept for mission-agent compat) -->
+          <select id="chat-mode" class="hdr-btn" title="Chat mode" style="display:none;">
+            <option value="reasoning" selected>Reasoning</option>
+            <option value="reasoning_fast">Fast Reasoning</option>
+            <option value="reasoning_loop">Looping Agent</option>
+            <option value="conversational">Conversational</option>
+            <option value="project_manager">Project Manager</option>
+            <option value="direct">Direct</option>
+          </select>
+
+          <div style="display:flex; flex-direction:row; align-items:center;">
+            <select id="model-select" class="hdr-btn" title="Model" style="max-width: 140px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; padding-right: 20px;">
+              {% for m in models %}
+              <option value="{{ m.id }}"
+                data-provider="{{ m.provider or ('gemini' if m.id.startswith('gemini-') else 'huggingface') }}"
+                data-credit="{{ m.credit_multiplier if m.credit_multiplier is defined else 1.0 }}" {% if m.id==model
+                %}selected{% endif %}>{{ m.name }}</option>
+              {% endfor %}
+            </select>
+            
+            <div class="model-slider-container" style="width: 100px; margin: 0 8px;">
+              <div class="slider-labels" style="display:flex; justify-content:space-between; font-size:0.55rem; color:var(--text-muted); margin-bottom:4px; padding:0 2px;">
+                <span>Cheapest</span>
+                <span>Fastest</span>
+              </div>
+              <input type="range" min="1" max="2" step="1" value="1" class="model-slider" id="main-hf-routing-slider" style="-webkit-appearance:none; width:100%; height:4px; border-radius:2px; background:rgba(255,255,255,0.1); outline:none; cursor:pointer;">
+            </div>
+          </div>
+          <button id="web-auto-toggle" class="hdr-btn" type="button" title="Automatically search the web when needed"
+            aria-label="Toggle automatic web search">🌐</button>
+          <button id="web-url-toggle" class="hdr-btn" type="button" title="Share webpage URL"
+            aria-label="Share webpage URL">🔗</button>
+          <button id="chat-agent-context-toggle" class="hdr-btn" type="button" style="display:none;"
+            title="View this agent's context">View Context</button>
+          <div class="web-url-wrap" id="web-url-wrap">
+            <input id="web-url-input" type="url" placeholder="Paste webpage URL" inputmode="url" />
+          </div>
+        </div>
+
+        <input id="user-input" type="text" placeholder="Ask anything…" autofocus />
+        <button id="send-btn" type="submit">Send</button>
+      </form>
+    </div>
+
+    <button id="sandbox-edge-btn" title="Peek Sandbox"></button>
+
+    <div id="sandbox-pane">
+      <div class="sandbox-header">
+        <span>Code Sandbox</span>
+        <div class="spacer"></div>
+        <label class="sb-view-toggle" title="Toggle between project preview and code editor">
+          <input id="sb-view-toggle" type="checkbox" />
+          <div class="sb-toggle-slider"></div>
+          <span>Code View</span>
+        </label>
+        <select id="sb-device-select" class="sb-btn" title="Simulate Device Resolution">
+          <option value="responsive">Responsive</option>
+          <option value="1920x1080">1080p Desktop</option>
+          <option value="2560x1440">1440p Desktop</option>
+          <option value="3840x2160">4K Desktop</option>
+          <option value="1240x2772">OnePlus 12R</option>
+          <option value="1344x2992">Pixel 8 Pro</option>
+          <option value="1440x3120">Galaxy S24 Ultra</option>
+        </select>
+        <button class="sb-btn" id="sb-compile" title="Compile to Windows/Linux">Compile App</button>
+        <button class="sb-btn" id="sb-fullscreen">Fullscreen</button>
+        <button class="sb-btn" id="sb-reload">Reload</button>
+        <button class="sb-btn close-sb" id="sb-close">Close</button>
+      </div>
+      <div id="sandbox-body">
+        <div id="sandbox-files"></div>
+        <div id="sandbox-work">
+          <textarea id="sandbox-editor" spellcheck="false" placeholder="Select a file to edit code..."></textarea>
+          <iframe id="sandbox-frame" scrolling="no"
+            sandbox="allow-scripts allow-modals allow-pointer-lock allow-forms allow-popups allow-downloads"></iframe>
+            
+          <div id="compile-terminal" style="display:none; position:absolute; bottom:0; left:0; right:0; height:50%; background:rgba(10,10,15,0.95); backdrop-filter:blur(10px); color:#10b981; font-family:'JetBrains Mono', monospace; padding:12px; overflow-y:auto; border-top:1px solid var(--glass-border); z-index:1500; font-size:0.75rem;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:5px;">
+                  <strong style="color:#e2e8ff;">Application Compiler</strong>
+                  <button id="compile-close" style="background:transparent; color:var(--text-muted); border:none; cursor:pointer; font-weight:bold;">✕</button>
+              </div>
+              <pre id="compile-output" style="margin:0; white-space:pre-wrap; line-height:1.4;"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="mission-page" class="mission-page-layout" style="display:none;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <div id="mission-page-project-label"
+          style="display:none;font-size:0.78rem;font-weight:700;color:var(--primary);padding:4px 8px;border:1px solid var(--primary);border-radius:999px;background:var(--primary-glow);">
+        </div>
+        <div style="font-weight:700;color:var(--thinking-step);">Mission Control Hub</div>
+        <div id="mission-page-meta" style="font-size:0.72rem;color:var(--text-muted);">Projects contain agents. Agents
+          are persistent AI workers. "Steps" are internal reasoning stages inside one response.</div>
+        <button id="mission-page-add-tile" class="hdr-btn" style="margin-left:auto; color:var(--primary); border-color:var(--primary);">+ Add Element</button>
+        <button id="mission-page-close" class="hdr-btn">Back to Chat</button>
+      </div>
+      <div id="mission-widget-grid" class="mission-grid">
+        <div id="mission-grid-guide" aria-hidden="true"></div>
+        <div id="mission-drop-preview" aria-hidden="true"></div>
+        <section class="mission-widget w-size-1x1" draggable="true" data-widget-id="projects">
+          <div class="mission-widget-header">
+            <span id="mission-projects-title">Projects</span>
+            <div class="spacer"></div>
+            <button id="mission-add-project-btn" class="hdr-btn">+ Project</button>
+            <button class="hdr-btn" data-widget-unlock="projects">Unlock Size</button>
+          </div>
+          <div id="mission-projects-list" class="mission-widget-body"
+            style="display:flex;flex-direction:column;gap:6px;"></div>
+          <div class="mission-widget-resize-handle" data-widget-handle="projects" title="Resize widget"></div>
+        </section>
+
+        <section class="mission-widget w-size-1x1" draggable="true" data-widget-id="agents">
+          <div class="mission-widget-header">
+            <span id="mission-agents-title">Independent Agents</span>
+            <div class="spacer"></div>
+            <button id="mission-add-agent-btn" class="hdr-btn">+ Agent</button>
+            <button class="hdr-btn" data-widget-unlock="agents">Unlock Size</button>
+          </div>
+          <div id="mission-agents-list" class="mission-widget-body"></div>
+          <div class="mission-widget-resize-handle" data-widget-handle="agents" title="Resize widget"></div>
+        </section>
+
+        <section class="mission-widget w-size-1x1" draggable="true" data-widget-id="usage">
+          <div class="mission-widget-header">
+            <span>Usage Stats</span>
+            <div class="spacer"></div>
+            <button id="mission-event-toggle-btn" class="hdr-btn">Add Event</button>
+            <button class="hdr-btn" data-widget-unlock="usage">Unlock Size</button>
+          </div>
+          <div id="mission-usage-graph" class="mission-widget-body"></div>
+          <div class="mission-widget-resize-handle" data-widget-handle="usage" title="Resize widget"></div>
+        </section>
+
+        <section class="mission-widget w-size-1x1" draggable="true" data-widget-id="files">
+          <div class="mission-widget-header">
+            <span id="mission-files-title">Project Workspace</span>
+            <div class="spacer"></div>
+            <button id="mission-add-file-btn" class="hdr-btn">+ File</button>
+            <button class="hdr-btn" data-widget-unlock="files">Unlock Size</button>
+          </div>
+          <div class="mission-widget-body" style="display:grid;grid-template-columns:140px 1fr;gap:8px;">
+            <div id="mission-file-list" style="display:flex;flex-direction:column;gap:6px;overflow:auto;"></div>
+            <div style="display:flex;flex-direction:column;gap:6px;min-height:0;">
+              <input id="mission-file-name" type="text" placeholder="File name"
+                style="padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);" />
+              <textarea id="mission-file-editor" placeholder="Project vision, shared context, scope, constraints..."
+                style="flex:1;min-height:120px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);"></textarea>
+              <button id="mission-file-save-btn" class="hdr-btn">Save File</button>
+            </div>
+          </div>
+          <div class="mission-widget-resize-handle" data-widget-handle="files" title="Resize widget"></div>
+        </section>
+
+        <section class="mission-widget w-size-1x1" draggable="true" data-widget-id="inspector">
+          <div class="mission-widget-header">
+            <span id="mission-inspector-title">Project Memory</span>
+            <div class="spacer"></div>
+            <button id="mission-open-project-memory" class="hdr-btn">Open Window</button>
+            <button class="hdr-btn" data-widget-unlock="inspector">Unlock Size</button>
+          </div>
+          <pre id="mission-agent-inspector" class="mission-widget-body"
+            style="white-space:pre-wrap;overflow:auto;background:var(--code-bg);padding:8px;border-radius:8px;border:1px solid var(--border);font-size:0.72rem;">Project memory preview appears here.</pre>
+          <div class="mission-widget-resize-handle" data-widget-handle="inspector" title="Resize widget"></div>
+        </section>
+
+        <section class="mission-widget w-size-1x1" draggable="true" data-widget-id="preview">
+          <div class="mission-widget-header">
+            <span>Project Preview</span>
+            <div class="spacer"></div>
+            <button class="hdr-btn" data-widget-unlock="preview">Unlock Size</button>
+          </div>
+          <div id="mission-project-preview" class="mission-widget-body"
+            style="display:flex;flex-direction:column;gap:8px;height:100%;flex-grow:1;"></div>
+          <div class="mission-widget-resize-handle" data-widget-handle="preview" title="Resize widget"></div>
+        </section>
+
+        <section class="mission-widget w-size-1x1" draggable="true" data-widget-id="calendar">
+          <div class="mission-widget-header">
+            <span>🗓 Calendar</span>
+            <div class="spacer"></div>
+            <button id="mission-cal-open-full" class="hdr-btn" style="font-size:.65rem;">Open Full ↗</button>
+            <button class="hdr-btn" data-widget-unlock="calendar">Unlock Size</button>
+          </div>
+          <div class="mission-widget-body mcal-body">
+
+            <!-- Left: mini month grid -->
+            <div class="mcal-left">
+              <div class="mcal-month-nav">
+                <button id="mission-calendar-prev" class="hdr-btn cal-nav-btn">‹</button>
+                <span id="mission-calendar-month-label" style="font-weight:600;font-size:.78rem;"></span>
+                <button id="mission-calendar-next" class="hdr-btn cal-nav-btn">›</button>
+              </div>
+              <div class="cal-grid-header" style="font-size:.58rem;">
+                <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+              </div>
+              <div id="mission-calendar-grid" class="mcal-day-grid"></div>
+              <button id="mission-cal-add-btn" class="cal-create-btn"
+                style="margin-top:8px;font-size:.7rem;padding:7px 10px;">＋ Add Event</button>
+            </div>
+
+            <!-- Right: event list for selected day -->
+            <div class="mcal-right">
+              <div class="mcal-list-header">
+                <span id="mission-calendar-day-label" style="font-weight:600;font-size:.75rem;">All Events</span>
+              </div>
+              <div id="mission-sched-list" class="mcal-event-list"></div>
+            </div>
+
+          </div>
+          <!-- hidden inputs kept for backward-compat with createScheduledActionFrom -->
+          <input id="mission-sched-run-at" type="hidden" />
+          <input id="mission-sched-target-agent" type="hidden" />
+          <textarea id="mission-sched-message" style="display:none;"></textarea>
+          <input id="mission-event-title" type="hidden" />
+          <textarea id="mission-event-sources" style="display:none;"></textarea>
+          <select id="mission-sched-mode" style="display:none;">
+            <option value="reminder">reminder</option>
+          </select>
+          <select id="mission-sched-repeat" style="display:none;">
+            <option value="none">none</option>
+          </select>
+          <button id="mission-sched-create-btn" style="display:none;"></button>
+          <div class="mission-widget-resize-handle" data-widget-handle="calendar" title="Resize widget"></div>
+        </section>
+
+        <section class="mission-widget w-size-1x1" draggable="true" data-widget-id="groupchat">
+          <div class="mission-widget-header">
+            <span>💬 Group Chat</span>
+            <div class="spacer"></div>
+            <button class="hdr-btn" data-widget-unlock="groupchat">Unlock Size</button>
+          </div>
+          <div class="mission-widget-body gchat-body">
+            <div id="mission-groupchat-messages" class="gchat-messages">
+              <div class="gchat-empty">Use @AgentName or @all to chat with your agents.</div>
+            </div>
+            <div class="gchat-composer">
+              <div id="gchat-mention-list" class="gchat-mention-list"></div>
+              <div class="gchat-input-row">
+                <textarea id="mission-groupchat-input" class="gchat-input" placeholder="@AgentName or @all …"
+                  rows="1"></textarea>
+                <button id="mission-groupchat-send" class="gchat-send-btn" title="Send">↑</button>
+              </div>
+            </div>
+          </div>
+          <div class="mission-widget-resize-handle" data-widget-handle="groupchat" title="Resize widget"></div>
+        </section>
+      </div>
+
+      <div id="mission-grid-context-menu" role="menu" aria-label="Add tile menu">
+        <button id="mission-context-add-project" class="hdr-btn" type="button">Add Project</button>
+        <button id="mission-context-add-agent" class="hdr-btn" type="button">Add Agent</button>
+        <button id="mission-context-add-manager" class="hdr-btn" type="button"
+          style="color:var(--primary);border-color:var(--primary);">Add Project Manager</button>
+        <button id="mission-context-add-swarm" class="hdr-btn" type="button"
+          style="color:#34d399;border-color:#34d399;">Add Swarm Agent</button>
+        <button id="mission-context-add-groupchat" class="hdr-btn" type="button">Add Group Chat</button>
+        <button id="mission-context-add-misc-note" class="hdr-btn" type="button">Add Note Tool</button>
+        <button id="mission-context-add-misc-packager" class="hdr-btn" type="button"
+          style="color:#00ffff;border-color:#00ffff;">Add App Compiler Tool</button>
+        <button id="mission-context-add-groupchat" class="hdr-btn" type="button"
+          style="color:#00ff88;border-color:#00ff88;">Add Group Chat</button>
+        <button id="mission-context-add-email" class="hdr-btn" type="button"
+          style="color:#a78bfa;border-color:#a78bfa;">✉ Add Email Tile</button>
+    </div>
+  </div>
+
+
+  <div id="active-agents-modal"
+    style="display:none;position:absolute;top:60px;right:20px;width:300px;background:var(--menu-bg);border:1px solid var(--border);border-radius:8px;padding:12px;z-index:999;box-shadow:var(--glass-shadow);backdrop-filter:blur(10px);">
+    <div
+      style="font-size:0.8rem;font-weight:bold;margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:6px;">
+      Active Agents</div>
+    <div id="active-agents-list"
+      style="max-height:200px;overflow:auto;font-size:0.75rem;display:flex;flex-direction:column;gap:6px;">
+      <div style="opacity:0.6;font-style:italic;">No active agents.</div>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal">
+    <div class="modal-card" style="max-width:520px;">
+      <div class="modal-header">
+        <h3>Profile</h3>
+        <button id="profile-close" class="hdr-btn modal-close">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:10px;">
+        <div id="profile-status" style="font-size:.78rem;color:var(--text-muted);">Loading profile...</div>
+        <div style="display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center;">
+          <div style="font-size:.75rem;color:var(--text-muted);">Username</div>
+          <div id="profile-username" style="font-size:.82rem;">—</div>
+          <div style="font-size:.75rem;color:var(--text-muted);">Email</div>
+          <div id="profile-email" style="font-size:.82rem;">—</div>
+          <div style="font-size:.75rem;color:var(--text-muted);">Member Since</div>
+          <div id="profile-created" style="font-size:.82rem;">—</div>
+          <div style="font-size:.75rem;color:var(--text-muted);">API Key</div>
+          <div id="profile-api-key" style="font-size:.82rem;word-break:break-all;">—</div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:6px;border-top:1px solid var(--border);">
+          <button id="profile-signin" class="hdr-btn" type="button">Sign In</button>
+          <button id="profile-copy-api-key" class="hdr-btn" type="button">Copy API Key</button>
+          <button id="profile-logout" class="hdr-btn" type="button" style="color:#fca5a5;border-color:#7f1d1d;">Sign
+            Out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Loading Overlay -->
+  {% include 'partials/settings-modal.html' %}
+
+  <!-- Memory Center Modal -->
+  {% include 'partials/memory-modal.html' %}
+
+  <!-- Projects Modal -->
+  {% include 'partials/projects-modal.html' %}
+
+  <!-- Workshop Modal -->
+  {% include 'partials/workshop-modal.html' %}
+
+  <!-- Calendar / Scheduled Actions Modal -->
+  <!-- Floating sandbox preview modal -->
+  <div id="sandbox-float-modal"
+    style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;">
+    <div id="sandbox-float-card"
+      style="position:relative;background:var(--bg);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 48px rgba(0,0,0,.45);display:flex;flex-direction:column;width:88vw;height:86vh;max-width:1200px;overflow:hidden;">
+      <div
+        style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;">
+        <span id="sandbox-float-title" style="font-size:.82rem;font-weight:600;flex:1;opacity:.9;">Live Preview</span>
+        <button id="sandbox-float-maximize" class="hdr-btn" type="button" title="Toggle fullscreen">⛶
+          Fullscreen</button>
+        <button id="sandbox-float-close" class="hdr-btn" type="button" title="Close">✕</button>
+      </div>
+      <iframe id="sandbox-float-frame" style="flex:1;border:none;width:100%;background:#fff;"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-modals"></iframe>
+    </div>
+  </div>
+
+  {% include 'partials/calendar-modal.html' %}
+
+  <!-- Agent Chat Modal -->
+  {% include 'partials/agent-chat-modal.html' %}
+
+  <!-- Agent Chat Preview Modal (Mission quick view) -->
+  {% include 'partials/agent-chat-preview-modal.html' %}
+
+  <!-- Agent Context Modal (for regular sidebar chat view) -->
+  <div id="chat-agent-context-modal">
+    <div class="modal-card" style="width:min(620px,95vw);height:min(82vh,760px)">
+      <div class="modal-header">
+        <h3 id="chat-agent-context-title" style="margin:0;">Agent Context</h3>
+        <button id="chat-agent-context-close" class="hdr-btn modal-close">✕</button>
+      </div>
+      <div class="modal-body" id="chat-agent-context-body" style="overflow:auto;"></div>
+    </div>
+  </div>
+
+  <!-- Agent Configuration Modal -->
+  {% include 'partials/agent-config-modal.html' %}
+
+  <!-- Project Memory Floating Window -->
+  {% include 'partials/project-memory-modal.html' %}
+
+  <!-- Mission Control Modal -->
+  {% include 'partials/mission-modal.html' %}
+
+  <!-- Custom Prompt Modal -->
+  {% include 'partials/custom-prompt-modal.html' %}
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}?v={{ range(100000, 999999) | random }}"></script>
+  <script src="{{ url_for('static', filename='js/webgl-refraction.js') }}?v={{ range(100000, 999999) | random }}"></script>
+</body>
+</html>

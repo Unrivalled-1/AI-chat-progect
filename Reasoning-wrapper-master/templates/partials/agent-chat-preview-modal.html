@@ -1,0 +1,22 @@
+<div id="agent-chat-preview-modal">
+    <div class="modal-card">
+      <div class="modal-header" style="flex-wrap:wrap;gap:8px;">
+        <div style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0;">
+          <h3 id="agent-chat-preview-title" style="margin:0;">Agent Chat Preview</h3>
+          <span id="agent-chat-preview-path" style="font-size:0.68rem;color:var(--text-muted);"></span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <button id="agent-chat-preview-context" class="hdr-btn" type="button" title="Expand and show context">View Context</button>
+          <button id="agent-chat-preview-expand" class="hdr-btn" type="button" title="Open full agent chat">Open Full Chat</button>
+          <button id="agent-chat-preview-close" class="hdr-btn modal-close">✕</button>
+        </div>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:10px;min-height:0;">
+        <div id="agent-chat-preview-messages"></div>
+        <div style="display:flex;gap:8px;">
+          <textarea id="agent-chat-preview-input" placeholder="Command this agent..." rows="2" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;resize:none;min-height:50px;"></textarea>
+          <button id="agent-chat-preview-send" class="hdr-btn">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>

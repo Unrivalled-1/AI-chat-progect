@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fire Tian Boss Battle</title>
+  <style>
+    :root {
+      --bg: #0a0a12;
+      --panel: #131325;
+      --text: #f6f0ff;
+      --muted: #b7a8d1;
+      --lava: #ff5e00;
+      --safe: #2ae6a0;
+      --warn: #ffd166;
+      --danger: #ff4d6d;
+      --accent: #8b5cf6;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 20% 10%, #271033, #090911 55%);
+      color: var(--text);
+      font-family: Inter, Segoe UI, system-ui, sans-serif;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 14px;
+    }
+
+    .shell {
+      width: min(1100px, 98vw);
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 12px;
+    }
+
+    .arena-wrap {
+      background: linear-gradient(180deg, #1b1531, #0f1020);
+      border: 1px solid #453778;
+      border-radius: 14px;
+      padding: 10px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      display: block;
+      background: linear-gradient(180deg, #1e1132 0%, #1d1327 45%, #2f1b12 100%);
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid #423563;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      color: #ffe9b3;
+    }
+
+    .muted { color: var(--muted); font-size: 0.83rem; }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 8px 0;
+      gap: 8px;
+    }
+
+    .bar {
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #2a2241;
+      border: 1px solid #5e4b8f;
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      transition: width 130ms linear;
+    }
+
+    #playerFill { background: linear-gradient(90deg, #34d399, #10b981); }
+    #bossFill { background: linear-gradient(90deg, #fb7185, #ef4444); }
+
+    .tag {
+      border: 1px solid #5a4c86;
+      background: #221b3a;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      color: #dccfff;
+    }
+
+    .drop {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px dashed #eab308;
+      border-radius: 10px;
+      background: rgba(234, 179, 8, 0.08);
+      color: #fef3c7;
+      display: none;
+    }
+
+    .controls {
+      font-size: 0.78rem;
+      color: #d8caef;
+      margin-top: 10px;
+      border-top: 1px solid #3e335f;
+      padding-top: 10px;
+    }
+
+    .status {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: #fbcfe8;
+      min-height: 1.4em;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="arena-wrap">
+      <canvas id="game" width="900" height="520" aria-label="Fire Tian boss battle"></canvas>
+    </div>
+
+    <aside class="panel">
+      <h1>🔥 Fire Tian (Prototype)</h1>
+      <div class="muted">Possible with no tools, but tuned to be brutally hard.</div>
+
+      <div class="row"><span>Player HP</span><span id="playerHpTxt">100/100</span></div>
+      <div class="bar"><span id="playerFill" style="width:100%"></span></div>
+
+      <div class="row" style="margin-top:10px;"><span>Boss HP</span><span id="bossHpTxt">1000/1000</span></div>
+      <div class="bar"><span id="bossFill" style="width:100%"></span></div>
+
+      <div class="row" style="margin-top:10px;"><span>Phase</span><span class="tag" id="phaseTag">P1</span></div>
+      <div class="row"><span>Safe Zone Shift</span><span class="tag" id="safeShiftTag">10.0s</span></div>
+      <div class="row"><span>Current Attack</span><span class="tag" id="atkTag">—</span></div>
+
+      <div class="row" style="margin-top:12px;"><span>Double Jump</span><span class="tag" id="djTag">locked</span></div>
+      <div class="row"><span>Wall Jump</span><span class="tag" id="wjTag">locked</span></div>
+
+      <div class="status" id="statusText">You can win now, but mobility gear makes this much safer.</div>
+
+      <div class="drop" id="dropBox">
+        🛡️ Fire Armor dropped!<br />
+        Set Bonus: brief heat immunity on perfect dodge.
+      </div>
+
+      <div class="controls">
+        <strong>Controls</strong><br />
+        Move: A/D or ←/→<br />
+        Jump: Space / W / ↑<br />
+        Crouch: S / ↓<br />
+        Attack: J<br />
+        Interact with altars: E
+      </div>
+
+      <div class="drop" id="prestigeBox" style="margin-top:8px; border-color:#a78bfa; background:rgba(167,139,250,0.1); color:#ede9fe;">
+        🏆 Prestige Unlocked: “Almost Impossible Unprepared”
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    const ui = {
+      playerHpTxt: document.getElementById('playerHpTxt'),
+      bossHpTxt: document.getElementById('bossHpTxt'),
+      playerFill: document.getElementById('playerFill'),
+      bossFill: document.getElementById('bossFill'),
+      phaseTag: document.getElementById('phaseTag'),
+      safeShiftTag: document.getElementById('safeShiftTag'),
+      atkTag: document.getElementById('atkTag'),
+      djTag: document.getElementById('djTag'),
+      wjTag: document.getElementById('wjTag'),
+      statusText: document.getElementById('statusText'),
+      dropBox: document.getElementById('dropBox'),
+      prestigeBox: document.getElementById('prestigeBox'),
+    };
+
+    const W = canvas.width;
+    const H = canvas.height;
+    const FLOOR_Y = 470;
+
+    const keys = new Set();
+    window.addEventListener('keydown', (e) => keys.add(e.key.toLowerCase()));
+    window.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
+
+    const player = {
+      x: 120,
+      y: 420,
+      w: 24,
+      h: 40,
+      standH: 40,
+      crouchH: 28,
+      vx: 0,
+      vy: 0,
+      speed: 240,
+      jumpVel: -440,
+      hp: 100,
+      maxHp: 100,
+      invuln: 0,
+      grounded: false,
+      jumpsUsed: 0,
+      hasDoubleJump: false,
+      hasWallJump: false,
+      wallLatch: 0,
+      attackCd: 0,
+      heatImmunity: 0,
+      perfectDodgeWindow: 0,
+      isCrouching: false,
+    };
+
+    const boss = {
+      x: 710,
+      y: 330,
+      w: 86,
+      h: 86,
+      hp: 1000,
+      maxHp: 1000,
+      vulnerable: false,
+      vulnerableTimer: 0,
+      attackTimer: 1.2,
+      attackIndex: 0,
+      telegraph: null,
+      phase: 1,
+      loop: ['Vertical Flame Waves', 'Sweeping Beam', 'Pillar Call', 'Ember Dash', 'Ceiling Rain + Surge', 'Core Burst'],
+    };
+
+    const state = {
+      t: 0,
+      dead: false,
+      win: false,
+      safeZones: [1, 3, 6],
+      safeCycleTimer: 10,
+      safeDir: 1,
+      safeCycleCount: 0,
+      safePatternIndex: 0,
+      teleSafe: null,
+      fakeSafe: null,
+      hazards: [],
+      particles: [],
+      heatTick: 0,
+      usedMobility: false,
+      altarHint: '',
+      wallLeft: { x: 0, y: 0, w: 20, h: H },
+      wallRight: { x: W - 20, y: 0, w: 20, h: H },
+      altars: [
+        { x: 70, y: FLOOR_Y - 60, w: 40, h: 60, kind: 'double', unlocked: false },
+        { x: W - 110, y: FLOOR_Y - 60, w: 40, h: 60, kind: 'wall', unlocked: false },
+      ],
+    };
+
+    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+    function lerp(a, b, t) { return a + (b - a) * clamp(t, 0, 1); }
+    function overlaps(a, b) {
+      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    let audioCtx = null;
+    function beep(freq = 440, dur = 0.08, type = 'sine', delay = 0) {
+      if (!audioCtx) return;
+      const at = audioCtx.currentTime + delay;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, at);
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(0.12, at + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      o.start(at);
+      o.stop(at + dur + 0.01);
+    }
+
+    function playStinger(name) {
+      if (!audioCtx) return;
+      if (name === 'Vertical Flame Waves') {
+        beep(380, 0.08, 'triangle'); beep(460, 0.08, 'triangle', 0.08);
+      } else if (name === 'Sweeping Beam') {
+        beep(220, 0.14, 'sawtooth'); beep(180, 0.14, 'sawtooth', 0.12);
+      } else if (name === 'Pillar Call') {
+        beep(520, 0.07, 'square'); beep(660, 0.07, 'square', 0.06); beep(820, 0.08, 'square', 0.12);
+      } else if (name === 'Ember Dash') {
+        beep(700, 0.06, 'triangle'); beep(420, 0.1, 'triangle', 0.07);
+      } else if (name === 'Ceiling Rain + Surge') {
+        beep(300, 0.07, 'sine'); beep(340, 0.07, 'sine', 0.07); beep(380, 0.14, 'sine', 0.14);
+      } else if (name === 'Core Burst') {
+        beep(180, 0.1, 'square'); beep(220, 0.1, 'square', 0.1); beep(280, 0.2, 'square', 0.2);
+      }
+    }
+
+    window.addEventListener('keydown', () => {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }, { once: true });
+
+    function damagePlayer(amount) {
+      if (player.invuln > 0 || player.heatImmunity > 0 || state.dead || state.win) return;
+      player.hp = Math.max(0, player.hp - amount);
+      player.invuln = 0.25;
+      if (player.hp <= 0) {
+        state.dead = true;
+        ui.statusText.textContent = 'You were incinerated. Press R to retry.';
+      }
+    }
+
+    function damageBoss(amount) {
+      if (!boss.vulnerable || state.win || state.dead) return;
+      boss.hp = Math.max(0, boss.hp - amount);
+      if (boss.hp <= 0) {
+        state.win = true;
+        ui.statusText.textContent = state.usedMobility
+          ? 'Fire Tian defeated. Fire Armor acquired!'
+          : 'Legendary clear: no tools used. Fire Armor acquired!';
+        ui.dropBox.style.display = 'block';
+        if (!state.usedMobility) ui.prestigeBox.style.display = 'block';
+      }
+    }
+
+    function retry() {
+      player.x = 120; player.y = 420; player.vx = 0; player.vy = 0;
+      player.hp = player.maxHp; player.invuln = 0; player.attackCd = 0;
+      player.jumpsUsed = 0; player.grounded = false; player.heatImmunity = 0;
+      boss.hp = boss.maxHp; boss.phase = 1; boss.attackIndex = 0; boss.attackTimer = 1.2;
+      boss.vulnerable = false; boss.vulnerableTimer = 0; boss.telegraph = null;
+      state.safeZones = [1, 3, 6]; state.safeDir = 1; state.safeCycleTimer = 10; state.safeCycleCount = 0;
+      state.safePatternIndex = 0; state.teleSafe = null; state.fakeSafe = null;
+      state.hazards = []; state.particles = []; state.dead = false; state.win = false; state.usedMobility = false;
+      state.altars.forEach(a => a.unlocked = false);
+      player.hasDoubleJump = false; player.hasWallJump = false;
+      ui.dropBox.style.display = 'none';
+      ui.prestigeBox.style.display = 'none';
+      ui.statusText.textContent = 'You can win now, but mobility gear makes this much safer.';
+    }
+
+    function getPhase() {
+      const ratio = boss.hp / boss.maxHp;
+      if (ratio <= 0.25) return 4;
+      if (ratio <= 0.5) return 3;
+      if (ratio <= 0.75) return 2;
+      return 1;
+    }
+
+    function safeZoneConfigForPhase(phase) {
+      if (phase === 1) return { count: 3, dur: 10.0, tele: 1.25, fake: false };
+      if (phase === 2) return { count: 3, dur: 8.5, tele: 1.0, fake: false };
+      if (phase === 3) return { count: 2, dur: 7.0, tele: 0.82, fake: true };
+      return { count: 2, dur: 6.0, tele: 0.65, fake: true };
+    }
+
+    function updateSafeZones(dt) {
+      const cfg = safeZoneConfigForPhase(boss.phase);
+      const safePatterns = [
+        [1, 3, 6],
+        [2, 4, 7],
+        [0, 3, 5],
+        [1, 4, 6],
+      ];
+      state.safeCycleTimer -= dt;
+      const teleThreshold = cfg.tele;
+      if (state.safeCycleTimer <= teleThreshold && !state.teleSafe) {
+        const nextPattern = safePatterns[(state.safePatternIndex + 1) % safePatterns.length].slice(0, cfg.count);
+        if (cfg.fake) {
+          state.teleSafe = { list: nextPattern, fakeIndex: nextPattern[nextPattern.length - 1] };
+        } else {
+          state.teleSafe = { list: nextPattern, fakeIndex: null };
+        }
+      }
+      if (state.safeCycleTimer <= 0) {
+        const next = (state.teleSafe?.list || safePatterns[(state.safePatternIndex + 1) % safePatterns.length].slice(0, cfg.count)).slice(0, cfg.count);
+        state.safeZones = next;
+        state.safePatternIndex = (state.safePatternIndex + 1) % safePatterns.length;
+        state.safeCycleTimer = cfg.dur;
+        state.safeCycleCount += 1;
+        if (cfg.fake && state.teleSafe?.fakeIndex !== null) {
+          state.fakeSafe = { idx: state.teleSafe.fakeIndex, warmup: 0.35, erupt: 0.55 };
+        }
+        state.teleSafe = null;
+      }
+
+      if (state.fakeSafe) {
+        state.fakeSafe.warmup -= dt;
+        if (state.fakeSafe.warmup <= 0) state.fakeSafe.erupt -= dt;
+        if (state.fakeSafe.erupt <= 0) state.fakeSafe = null;
+      }
+    }
+
+    function currentSafeIndex() {
+      const idx = Math.floor(clamp((player.x + player.w * 0.5) / (W / 8), 0, 7.999));
+      return idx;
+    }
+
+    function spawnAttack() {
+      const attack = boss.loop[boss.attackIndex % boss.loop.length];
+      const speedScale = boss.phase === 1 ? 1 : boss.phase === 2 ? 1.12 : boss.phase === 3 ? 1.24 : 1.36;
+      const cycle = boss.attackIndex;
+      boss.attackIndex += 1;
+      ui.atkTag.textContent = attack;
+      playStinger(attack);
+
+      if (attack === 'Vertical Flame Waves') {
+        const lanes = cycle % 2 === 0 ? [1, 3, 5, 7] : [0, 2, 4, 6];
+        boss.telegraph = { name: attack, t: 0.95 / speedScale, tMax: 0.95 / speedScale, lanes };
+      } else if (attack === 'Sweeping Beam') {
+        const dir = cycle % 2 === 0 ? -1 : 1;
+        boss.telegraph = { name: attack, t: 0.78 / speedScale, tMax: 0.78 / speedScale, dir };
+      } else if (attack === 'Pillar Call') {
+        const spotSets = [
+          [120, 370, 720],
+          [220, 520, 760],
+          [90, 450, 680],
+          [170, 320, 610],
+        ];
+        const spots = spotSets[cycle % spotSets.length];
+        boss.telegraph = { name: attack, t: 1.05 / speedScale, tMax: 1.05 / speedScale, spots };
+      } else if (attack === 'Ember Dash') {
+        boss.telegraph = { name: attack, t: 0.72 / speedScale, tMax: 0.72 / speedScale, x: player.x };
+      } else if (attack === 'Ceiling Rain + Surge') {
+        const marksSets = [
+          [80, 180, 320, 460, 620, 760],
+          [120, 260, 360, 520, 660, 820],
+          [70, 230, 340, 500, 700, 790],
+          [110, 210, 420, 560, 680, 840],
+        ];
+        boss.telegraph = { name: attack, t: 1.18 / speedScale, tMax: 1.18 / speedScale, marks: marksSets[cycle % marksSets.length] };
+      } else if (attack === 'Core Burst') {
+        boss.telegraph = { name: attack, t: 0.98 / speedScale, tMax: 0.98 / speedScale, waves: 3 + boss.phase };
+      }
+    }
+
+    function resolveAttack(dt) {
+      if (!boss.telegraph) return;
+      boss.telegraph.t -= dt;
+      if (boss.telegraph.t > 0) return;
+
+      const t = boss.telegraph;
+      boss.telegraph = null;
+
+      if (t.name === 'Ember Dash') {
+        state.hazards.push({ kind: 'line', x1: 30, x2: W - 30, y: FLOOR_Y - 8, h: 14, ttl: 0.8, dmg: 16 });
+      } else if (t.name === 'Vertical Flame Waves') {
+        const sectorW = W / 8;
+        t.lanes.forEach((lane, i) => {
+          state.hazards.push({
+            kind: 'pillar',
+            x: lane * sectorW + 10,
+            y: FLOOR_Y - 150,
+            w: sectorW - 20,
+            h: 150,
+            ttl: 0.42 + i * 0.04,
+            dmg: 15,
+          });
+        });
+      } else if (t.name === 'Ceiling Rain + Surge') {
+        t.marks.forEach((mx, i) => {
+          state.hazards.push({ kind: 'meteor', x: mx, y: -80 - i * 20, vy: 360, ttl: 2.1, dmg: 14, r: 9 });
+        });
+        state.hazards.push({ kind: 'magma', y: FLOOR_Y - 20, h: 20, ttl: 1.35, dmg: 13 });
+      } else if (t.name === 'Pillar Call') {
+        t.spots.forEach(sx => {
+          state.hazards.push({ kind: 'pillar', x: sx - 18, y: FLOOR_Y - 120, w: 36, h: 120, ttl: 1.2, dmg: 18 });
+        });
+      } else if (t.name === 'Sweeping Beam') {
+        state.hazards.push({
+          kind: 'sweep',
+          x: t.dir < 0 ? W - 20 : 20,
+          y: FLOOR_Y - 96,
+          w: 140,
+          vx: t.dir * 520,
+          ttl: 0.72,
+          dmg: 22,
+        });
+      } else if (t.name === 'Core Burst') {
+        for (let i = 0; i < t.waves; i++) {
+          state.hazards.push({ kind: 'wave', x: boss.x + boss.w * 0.5, y: FLOOR_Y - 2, r: 30 + i * 50, dr: 260, ttl: 0.9 + i * 0.1, dmg: 10 + i });
+        }
+        boss.vulnerable = true;
+        boss.vulnerableTimer = boss.phase === 1 ? 3.0 : boss.phase === 2 ? 2.6 : boss.phase === 3 ? 2.0 : 1.25;
+        ui.statusText.textContent = `Recovery window open (${boss.vulnerableTimer.toFixed(2)}s)!`;
+      }
+
+      const baseCd = boss.phase === 1 ? 1.45 : boss.phase === 2 ? 1.15 : boss.phase === 3 ? 0.97 : 0.82;
+      boss.attackTimer = baseCd;
+    }
+
+    function updatePlayer(dt) {
+      if (state.dead || state.win) return;
+
+      const left = keys.has('a') || keys.has('arrowleft');
+      const right = keys.has('d') || keys.has('arrowright');
+      const jump = keys.has(' ') || keys.has('w') || keys.has('arrowup');
+      const crouch = keys.has('s') || keys.has('arrowdown');
+      const interact = keys.has('e');
+      const attack = keys.has('j');
+
+      player.vx = (right ? 1 : 0) - (left ? 1 : 0);
+      player.x += player.vx * player.speed * dt;
+
+      const onLeftWall = player.x <= 20;
+      const onRightWall = player.x + player.w >= W - 20;
+
+      if ((onLeftWall || onRightWall) && !player.grounded && player.hasWallJump) {
+        player.wallLatch = 0.08;
+        if (player.vy > 70) player.vy = 70;
+      }
+
+      const shouldCrouch = crouch && player.grounded;
+      if (shouldCrouch && !player.isCrouching) {
+        player.isCrouching = true;
+        player.h = player.crouchH;
+        player.y = FLOOR_Y - player.h;
+      } else if (!shouldCrouch && player.isCrouching) {
+        player.isCrouching = false;
+        player.h = player.standH;
+        player.y = FLOOR_Y - player.h;
+      }
+
+      if (jump && !player._jumpLatch) {
+        if (player.grounded) {
+          player.vy = player.jumpVel;
+          player.grounded = false;
+          player.jumpsUsed = 1;
+        } else if (player.hasDoubleJump && player.jumpsUsed < 2) {
+          player.vy = player.jumpVel * 0.95;
+          player.jumpsUsed = 2;
+        } else if (player.hasWallJump && (onLeftWall || onRightWall || player.wallLatch > 0)) {
+          player.vy = player.jumpVel * 0.95;
+          player.x += onLeftWall ? 20 : -20;
+          player.jumpsUsed = 1;
+        }
+      }
+      player._jumpLatch = jump;
+
+      player.vy += 980 * dt;
+      player.y += player.vy * dt;
+
+      if (player.y + player.h >= FLOOR_Y) {
+        player.y = FLOOR_Y - player.h;
+        player.vy = 0;
+        player.grounded = true;
+        player.jumpsUsed = 0;
+      }
+
+      player.x = clamp(player.x, 0, W - player.w);
+      player.wallLatch = Math.max(0, player.wallLatch - dt);
+
+      if (interact) {
+        for (const altar of state.altars) {
+          if (!altar.unlocked && overlaps(player, altar)) {
+            altar.unlocked = true;
+            state.usedMobility = true;
+            if (altar.kind === 'double') {
+              player.hasDoubleJump = true;
+              ui.statusText.textContent = 'Mobility tool acquired: Double Jump.';
+            } else {
+              player.hasWallJump = true;
+              ui.statusText.textContent = 'Mobility tool acquired: Wall Jump.';
+            }
+          }
+        }
+      }
+
+      if (attack && player.attackCd <= 0) {
+        player.attackCd = 0.28;
+        const dist = Math.abs((player.x + player.w * 0.5) - (boss.x + boss.w * 0.5));
+        if (dist < 110 && Math.abs(player.y - boss.y) < 130) {
+          damageBoss(32);
+        }
+      }
+
+      player.attackCd = Math.max(0, player.attackCd - dt);
+      player.invuln = Math.max(0, player.invuln - dt);
+      player.heatImmunity = Math.max(0, player.heatImmunity - dt);
+      player.perfectDodgeWindow = Math.max(0, player.perfectDodgeWindow - dt);
+    }
+
+    function updateHazards(dt) {
+      const pr = { x: player.x, y: player.y, w: player.w, h: player.h };
+
+      for (const h of state.hazards) {
+        h.ttl -= dt;
+        if (h.kind === 'meteor') {
+          h.y += h.vy * dt;
+          if (h.y > FLOOR_Y - 10) {
+            h.ttl = Math.min(h.ttl, 0.14);
+            if (Math.abs((player.x + player.w / 2) - h.x) < h.r + 12 && player.y + player.h >= FLOOR_Y - 6) {
+              damagePlayer(h.dmg);
+            }
+          }
+        } else if (h.kind === 'wave') {
+          h.r += h.dr * dt;
+          const px = player.x + player.w / 2;
+          const dist = Math.abs(px - h.x);
+          if (Math.abs(dist - h.r) < 10 && player.y + player.h >= FLOOR_Y - 4) {
+            // Perfect dodge: if in air over wave edge
+            if (player.y + player.h < FLOOR_Y - 16) {
+              player.heatImmunity = 0.75;
+            } else {
+              damagePlayer(h.dmg);
+            }
+          }
+        }
+
+        if (h.kind === 'line') {
+          if (pr.y + pr.h > h.y && pr.y < h.y + h.h) damagePlayer(h.dmg);
+        }
+        if (h.kind === 'pillar' && overlaps(pr, h)) damagePlayer(h.dmg);
+        if (h.kind === 'sweep') {
+          h.x += h.vx * dt;
+          const sweepBandTop = h.y;
+          const sweepBandBottom = h.y + 16;
+          const hitX = pr.x < h.x + h.w && pr.x + pr.w > h.x;
+          if (hitX && pr.y + pr.h > sweepBandTop && pr.y < sweepBandBottom) damagePlayer(h.dmg);
+        }
+        if (h.kind === 'magma') {
+          if (pr.y + pr.h >= h.y) damagePlayer(h.dmg);
+        }
+      }
+
+      state.hazards = state.hazards.filter(h => h.ttl > 0);
+
+      // Constant heat-pressure: standing outside safe zone during pulses hurts.
+      state.heatTick -= dt;
+      if (state.heatTick <= 0) {
+        state.heatTick = 0.25;
+        const idx = currentSafeIndex();
+        const safeNow = state.safeZones.includes(idx);
+        const fakeBad = !!state.fakeSafe && state.fakeSafe.idx === idx && state.fakeSafe.warmup <= 0;
+        if (!safeNow || fakeBad) damagePlayer(boss.phase >= 4 ? 6 : boss.phase >= 3 ? 5 : 3);
+      }
+    }
+
+    function updateBoss(dt) {
+      if (state.dead || state.win) return;
+      boss.phase = getPhase();
+
+      if (boss.vulnerable) {
+        boss.vulnerableTimer -= dt;
+        if (boss.vulnerableTimer <= 0) {
+          boss.vulnerable = false;
+          ui.statusText.textContent = 'Recovery window ended.';
+        }
+      }
+
+      if (!boss.telegraph) {
+        boss.attackTimer -= dt;
+        if (boss.attackTimer <= 0) spawnAttack();
+      }
+      resolveAttack(dt);
+    }
+
+    function drawArena() {
+      // floor sectors (safe zones shift)
+      const sectorW = W / 8;
+      for (let i = 0; i < 8; i++) {
+        const x = i * sectorW;
+        const safe = state.safeZones.includes(i);
+        const tele = state.teleSafe?.list?.includes(i);
+        const fake = (state.teleSafe && state.teleSafe.fakeIndex === i) || (state.fakeSafe && state.fakeSafe.idx === i);
+        ctx.fillStyle = safe ? 'rgba(42,230,160,0.25)' : 'rgba(255,94,0,0.18)';
+        if (tele) ctx.fillStyle = fake ? 'rgba(255,214,10,0.42)' : 'rgba(66,245,180,0.42)';
+        if (state.fakeSafe && state.fakeSafe.idx === i && state.fakeSafe.warmup <= 0) {
+          ctx.fillStyle = 'rgba(255,70,70,0.55)';
+        }
+        ctx.fillRect(x + 1, FLOOR_Y - 14, sectorW - 2, 20);
+      }
+
+      // glyph strip: announced next safe pattern
+      for (let i = 0; i < 8; i++) {
+        const gx = (i + 0.5) * sectorW;
+        const lit = state.teleSafe?.list?.includes(i);
+        const fake = state.teleSafe?.fakeIndex === i;
+        ctx.fillStyle = lit ? (fake ? 'rgba(255,220,120,0.95)' : 'rgba(170,255,220,0.95)') : 'rgba(110,90,140,0.55)';
+        ctx.beginPath();
+        ctx.arc(gx, 28, 8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // walls for wall jump routes
+      ctx.fillStyle = '#3b2d57';
+      ctx.fillRect(0, 0, 20, H);
+      ctx.fillRect(W - 20, 0, 20, H);
+
+      // altars
+      for (const altar of state.altars) {
+        ctx.fillStyle = altar.unlocked ? 'rgba(70,70,90,0.8)' : (altar.kind === 'double' ? 'rgba(80,140,255,0.8)' : 'rgba(170,120,255,0.8)');
+        ctx.fillRect(altar.x, altar.y, altar.w, altar.h);
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px sans-serif';
+        ctx.fillText(altar.kind === 'double' ? 'DJ' : 'WJ', altar.x + 9, altar.y + 33);
+      }
+    }
+
+    function drawBoss() {
+      ctx.fillStyle = boss.vulnerable ? '#fbbf24' : '#ef4444';
+      ctx.beginPath();
+      ctx.arc(boss.x + boss.w / 2, boss.y + boss.h / 2, 42, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (boss.telegraph) {
+        const prog = boss.telegraph.tMax ? (1 - boss.telegraph.t / boss.telegraph.tMax) : 0;
+        const c = Math.floor(lerp(90, 255, prog));
+        ctx.strokeStyle = `rgb(255, ${c}, ${Math.floor(lerp(0, 255, prog))})`;
+        ctx.lineWidth = 3;
+        if (boss.telegraph.name === 'Pillar Call') {
+          boss.telegraph.spots.forEach(sx => {
+            ctx.strokeRect(sx - 20, FLOOR_Y - 120, 40, 120);
+          });
+        }
+        if (boss.telegraph.name === 'Ceiling Rain + Surge') {
+          boss.telegraph.marks.forEach(mx => {
+            ctx.beginPath();
+            ctx.arc(mx, FLOOR_Y - 2, 12, 0, Math.PI * 2);
+            ctx.stroke();
+          });
+        }
+        if (boss.telegraph.name === 'Vertical Flame Waves') {
+          const sectorW = W / 8;
+          boss.telegraph.lanes.forEach((lane) => {
+            ctx.strokeRect(lane * sectorW + 8, FLOOR_Y - 152, sectorW - 16, 150);
+          });
+        }
+        if (boss.telegraph.name === 'Core Burst') {
+          ctx.beginPath();
+          ctx.arc(boss.x + boss.w / 2, FLOOR_Y - 2, 45, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawHazards() {
+      for (const h of state.hazards) {
+        if (h.kind === 'line') {
+          ctx.fillStyle = 'rgba(255,80,80,0.6)';
+          ctx.fillRect(h.x1, h.y, h.x2 - h.x1, h.h);
+        } else if (h.kind === 'meteor') {
+          ctx.fillStyle = '#ff7a00';
+          ctx.beginPath();
+          ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (h.kind === 'pillar') {
+          ctx.fillStyle = 'rgba(255,90,0,0.65)';
+          ctx.fillRect(h.x, h.y, h.w, h.h);
+        } else if (h.kind === 'sweep') {
+          ctx.fillStyle = 'rgba(255,60,60,0.55)';
+          ctx.fillRect(h.x, h.y, h.w, 16);
+        } else if (h.kind === 'magma') {
+          ctx.fillStyle = 'rgba(255,100,0,0.6)';
+          ctx.fillRect(20, h.y, W - 40, h.h);
+        } else if (h.kind === 'wave') {
+          ctx.strokeStyle = 'rgba(255,180,70,0.9)';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawPlayer() {
+      ctx.fillStyle = player.invuln > 0 ? '#99f6e4' : '#22d3ee';
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+      if (player.heatImmunity > 0) {
+        ctx.strokeStyle = '#fde68a';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(player.x - 2, player.y - 2, player.w + 4, player.h + 4);
+      }
+    }
+
+    function updateUI() {
+      ui.playerHpTxt.textContent = `${Math.ceil(player.hp)}/${player.maxHp}`;
+      ui.bossHpTxt.textContent = `${Math.ceil(boss.hp)}/${boss.maxHp}`;
+      ui.playerFill.style.width = `${(player.hp / player.maxHp) * 100}%`;
+      ui.bossFill.style.width = `${(boss.hp / boss.maxHp) * 100}%`;
+      ui.phaseTag.textContent = `P${boss.phase}`;
+      ui.safeShiftTag.textContent = `${Math.max(0, state.safeCycleTimer).toFixed(1)}s`;
+      ui.djTag.textContent = player.hasDoubleJump ? 'ready' : 'locked';
+      ui.wjTag.textContent = player.hasWallJump ? 'ready' : 'locked';
+
+      if (!state.usedMobility && !state.win && !state.dead && boss.phase >= 2 && !boss.vulnerable) {
+        ui.statusText.textContent = 'You can win now, but returning with mobility gear is recommended.';
+      }
+    }
+
+    let last = performance.now();
+    function frame(now) {
+      const dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+
+      if (keys.has('r')) retry();
+
+      ctx.clearRect(0, 0, W, H);
+
+      if (!state.dead && !state.win) {
+        updateSafeZones(dt);
+        updatePlayer(dt);
+        updateBoss(dt);
+        updateHazards(dt);
+      }
+
+      drawArena();
+      drawHazards();
+      drawBoss();
+      drawPlayer();
+      updateUI();
+
+      requestAnimationFrame(frame);
+    }
+
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

@@ -1,0 +1,2648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vibe Coding Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+       DESIGN SYSTEM — Glassmorphism + Prism Refraction
+       ═══════════════════════════════════════════════════════════ */
+    :root {
+      /* Surfaces */
+      --bg:           #05050f;
+      --bg-grad-1:    #0d0b22;
+      --bg-grad-2:    #150b25;
+
+      /* Glass layers */
+      --glass-1:      rgba(255,255,255,0.028);
+      --glass-2:      rgba(255,255,255,0.055);
+      --glass-3:      rgba(255,255,255,0.10);
+      --glass-border: rgba(255,255,255,0.075);
+      --glass-hi:     rgba(255,255,255,0.045);
+      --glass-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.4);
+      --glass-blur:   28px;
+
+      /* Prismatic accent strip */
+      --prism: linear-gradient(90deg,
+        rgba(139,92,246,0.9),
+        rgba(56,189,248,0.9),
+        rgba(52,211,153,0.9),
+        rgba(251,191,36,0.8),
+        rgba(236,72,153,0.9),
+        rgba(139,92,246,0.9));
+
+      /* Brand */
+      --primary:       #a78bfa;
+      --primary-glow:  rgba(167,139,250,0.35);
+      --primary-hover: #c4b5fd;
+
+      /* Text */
+      --text:       #e2e8ff;
+      --text-muted: #8892b0;
+      --text-dim:   rgba(226,232,255,0.5);
+
+      /* Borders */
+      --border:  rgba(167,139,250,0.15);
+
+      /* Message bubbles */
+      --msg-user:             rgba(109,40,217,0.18);
+      --msg-user-border:      rgba(139,92,246,0.3);
+      --msg-assistant:        rgba(255,255,255,0.025);
+      --msg-assistant-border: rgba(148,163,184,0.12);
+
+      /* Code blocks */
+      --code-bg:     rgba(0,0,0,0.4);
+      --code-header: rgba(100,116,139,0.12);
+
+      /* Semantic */
+      --thinking-step: #93c5fd;
+      --header-bg:     rgba(5,5,20,0.55);
+      --panel-bg:      rgba(255,255,255,0.02);
+      --overlay-bg:    rgba(0,0,0,0.5);
+      --modal-bg:      rgba(8,8,22,0.72);
+      --menu-bg:       rgba(8,8,22,0.88);
+
+      /* Compat aliases */
+      --glass-strong:  var(--glass-3);
+      --neu-dark:      rgba(0,0,0,0.5);
+      --shadow-inset:  inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.3);
+    }
+
+    /* ── Theme overrides ──────────────────────────────────────────── */
+    [data-theme="light"] {
+      --bg: #dfe5f3; --bg-grad-1: #f4f7ff; --bg-grad-2: #d2dbf0;
+      --glass-1: rgba(255,255,255,0.5); --glass-2: rgba(255,255,255,0.7); --glass-3: rgba(255,255,255,0.9);
+      --glass-border: rgba(0,0,0,0.07); --glass-hi: rgba(255,255,255,0.9);
+      --header-bg: rgba(255,255,255,0.65); --panel-bg: rgba(255,255,255,0.55);
+      --overlay-bg: rgba(15,23,42,0.16); --modal-bg: rgba(255,255,255,0.92); --menu-bg: rgba(255,255,255,0.95);
+      --primary: #6d28d9; --primary-hover: #5b21b6; --primary-glow: rgba(109,40,217,0.25);
+      --text: #1e1b4b; --text-muted: #6b7280; --border: rgba(109,40,217,0.2);
+      --msg-user: rgba(109,40,217,0.15); --msg-user-border: rgba(109,40,217,0.3);
+      --msg-assistant: rgba(255,255,255,0.8); --msg-assistant-border: rgba(0,0,0,0.08);
+      --code-bg: rgba(241,245,249,0.9); --code-header: rgba(203,213,225,0.5);
+      --thinking-step: #6d28d9;
+    }
+    [data-theme="light"] .msg.user { color: #fff; }
+    [data-theme="light"] header h1 { color: var(--primary); }
+
+    [data-theme="midnight"] {
+      --bg: #030513; --bg-grad-1: #0a0f2b; --bg-grad-2: #13042f;
+      --primary: #8b5cf6; --primary-hover: #7c3aed; --primary-glow: rgba(139,92,246,0.3);
+      --thinking-step: #a78bfa; --header-bg: rgba(15,15,50,0.6);
+      --msg-user: rgba(91,33,182,0.22); --msg-user-border: rgba(139,92,246,0.3);
+    }
+    [data-theme="cyberpunk"] {
+      --bg: #010801; --bg-grad-1: #041405; --bg-grad-2: #000;
+      --primary: #00ff41; --primary-hover: #00cc33; --primary-glow: rgba(0,255,65,0.25);
+      --text: #00ff41; --text-muted: #008f11; --border: rgba(0,255,65,0.4);
+      --msg-user: rgba(0,80,18,0.45); --msg-user-border: rgba(0,255,65,0.35);
+      --msg-assistant: rgba(0,0,0,0.7); --msg-assistant-border: rgba(0,255,65,0.35);
+      --thinking-step: #00ff41; --header-bg: rgba(0,10,0,0.65);
+      --code-bg: rgba(0,0,0,0.85);
+    }
+    [data-theme="forest"] {
+      --bg: #0c1510; --bg-grad-1: #182a20; --bg-grad-2: #0d1b12;
+      --primary: #34d399; --primary-hover: #10b981; --primary-glow: rgba(52,211,153,0.25);
+      --text: #ecfdf5; --text-muted: #6ee7b7; --border: rgba(52,211,153,0.2);
+      --msg-user: rgba(16,78,47,0.45); --msg-user-border: rgba(52,211,153,0.3);
+      --msg-assistant: rgba(12,28,20,0.6); --msg-assistant-border: rgba(52,211,153,0.15);
+      --thinking-step: #6ee7b7; --header-bg: rgba(12,24,18,0.6);
+    }
+    [data-theme="crimson-black"] {
+      --bg: #060407; --bg-grad-1: #200610; --bg-grad-2: #000;
+      --primary: #f43f5e; --primary-hover: #e11d48; --primary-glow: rgba(244,63,94,0.3);
+      --text: #ffe4e6; --text-muted: #fda4af; --border: rgba(244,63,94,0.25);
+      --msg-user: rgba(136,19,55,0.4); --msg-user-border: rgba(244,63,94,0.3);
+      --thinking-step: #fb7185; --header-bg: rgba(30,5,14,0.65);
+    }
+    [data-theme="aurora"] {
+      --bg: #06101a; --bg-grad-1: #0f2440; --bg-grad-2: #072625;
+      --primary: #22d3ee; --primary-hover: #06b6d4; --primary-glow: rgba(34,211,238,0.25);
+      --text: #ecfeff; --text-muted: #67e8f9; --border: rgba(34,211,238,0.2);
+      --msg-user: rgba(8,145,178,0.3); --msg-user-border: rgba(34,211,238,0.3);
+      --thinking-step: #67e8f9; --header-bg: rgba(6,20,36,0.65);
+    }
+    [data-theme="sunset-neon"] {
+      --bg: #0f0818; --bg-grad-1: #3c1230; --bg-grad-2: #161028;
+      --primary: #f97316; --primary-hover: #ea580c; --primary-glow: rgba(249,115,22,0.3);
+      --text: #fff7ed; --text-muted: #fed7aa; --border: rgba(249,115,22,0.25);
+      --msg-user: rgba(154,52,18,0.4); --msg-user-border: rgba(249,115,22,0.3);
+      --thinking-step: #fb923c; --header-bg: rgba(30,8,25,0.65);
+    }
+    [data-theme="minimal"] {
+      --bg: #f4f6f8; --bg-grad-1: #eef1f4; --bg-grad-2: #e7ebef;
+      --glass-1: #ffffff; --glass-2: #f8fafc; --glass-3: #ffffff;
+      --glass-border: #d7dde5; --glass-hi: #ffffff;
+      --glass-shadow: 0 2px 10px rgba(15,23,42,0.06);
+      --glass-blur: 0px;
+      --prism: none;
+      --primary: #2563eb; --primary-hover: #1d4ed8; --primary-glow: rgba(37,99,235,0.14);
+      --text: #1f2937; --text-muted: #64748b; --text-dim: rgba(31,41,55,0.5);
+      --border: #d8e0ea;
+      --msg-user: #e8f0ff; --msg-user-border: #bfd3ff;
+      --msg-assistant: #ffffff; --msg-assistant-border: #d9e1ea;
+      --code-bg: #f8fafc; --code-header: #edf2f7;
+      --thinking-step: #1d4ed8;
+      --header-bg: #ffffff;
+      --panel-bg: #ffffff;
+      --overlay-bg: rgba(15,23,42,0.08);
+      --modal-bg: rgba(255,255,255,0.98);
+      --menu-bg: rgba(255,255,255,0.99);
+      --shadow-inset: none;
+    }
+    body[data-theme="minimal"]::before,
+    body[data-theme="minimal"]::after {
+      background: #f4f6f8;
+      animation: none;
+    }
+    [data-theme="minimal"] .bg-orbs,
+    [data-theme="minimal"] .hdr-btn::before,
+    [data-theme="minimal"] .theme-opt::before,
+    [data-theme="minimal"] .modal-card::before,
+    [data-theme="minimal"] #sidebar::after,
+    [data-theme="minimal"] header::before {
+      display: none;
+    }
+    [data-theme="minimal"] .hdr-btn:hover {
+      transform: none;
+      box-shadow: 0 1px 0 rgba(15,23,42,0.03);
+    }
+    [data-theme="minimal"] .msg.user { color: #0f172a; }
+
+    /* ═══════════════════════════════════════════════════════════
+       ANIMATIONS
+       ═══════════════════════════════════════════════════════════ */
+    @keyframes bgDrift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes orb-float-1 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(80px,-100px) scale(1.08); }
+      66% { transform: translate(-60px,60px) scale(0.94); }
+    }
+    @keyframes orb-float-2 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      40% { transform: translate(-90px,70px) scale(1.12); }
+      70% { transform: translate(60px,-50px) scale(0.96); }
+    }
+    @keyframes prism-spin {
+      from { transform: translate(-50%,-50%) rotate(0deg); }
+      to   { transform: translate(-50%,-50%) rotate(360deg); }
+    }
+    /* Physics bounce-in for messages */
+    @keyframes msg-bounce {
+      0%   { opacity: 0; transform: scale(0.88) translateY(18px); }
+      55%  { opacity: 1; transform: scale(1.03) translateY(-4px); }
+      75%  { transform: scale(0.98) translateY(2px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes shimmer-sweep {
+      0%   { transform: translateX(-140%) skewX(-20deg); }
+      100% { transform: translateX(240%) skewX(-20deg); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes modal-spring {
+      0%   { opacity: 0; transform: scale(0.88) translateY(20px); }
+      60%  { opacity: 1; transform: scale(1.02) translateY(-4px); }
+      80%  { transform: scale(0.99) translateY(1px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes typing-bounce {
+      0%,80%,100% { transform: scale(0) translateY(0); }
+      40%          { transform: scale(1) translateY(-6px); }
+    }
+    @keyframes backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes prism-bar {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       BASE
+       ═══════════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    button,
+    .custom-select-btn {
+      font-family: 'JetBrains Mono', 'Inter', 'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Animated mesh gradient */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 90% 60% at 15% 5%,  rgba(109,40,217,0.22)  0%, transparent 55%),
+        radial-gradient(ellipse 70% 50% at 85% 90%, rgba(236,72,153,0.18)  0%, transparent 55%),
+        radial-gradient(ellipse 60% 70% at 70% 20%, rgba(56,189,248,0.14)  0%, transparent 55%),
+        var(--bg);
+      background-size: 220% 220%;
+      animation: bgDrift 22s ease infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Floating ambient orbs */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(circle 400px at 10% 80%, rgba(139,92,246,0.08) 0%, transparent 60%),
+        radial-gradient(circle 300px at 90% 10%, rgba(56,189,248,0.07) 0%, transparent 60%);
+      animation: bgDrift 35s ease-in-out infinite reverse;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       HEADER
+       ═══════════════════════════════════════════════════════════ */
+    header {
+      background: var(--header-bg);
+      padding: 6px 12px;
+      display: flex; align-items: center; gap: 8px;
+      flex-shrink: 0;
+      backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+      border-bottom: 1px solid var(--glass-border);
+      position: relative; z-index: 100;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 24px rgba(0,0,0,0.3);
+    }
+
+    /* Prismatic top edge */
+    header::before {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 0; right: 0; height: 1px;
+      background: var(--prism);
+      background-size: 300% 100%;
+      animation: prism-bar 6s linear infinite;
+      opacity: 0.5;
+    }
+
+    header h1 {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--primary);
+      text-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .model-badge {
+      font-size: 0.62rem;
+      background: rgba(0,0,0,0.3);
+      padding: 3px 9px;
+      border-radius: 999px;
+      color: var(--thinking-step);
+      border: 1px solid rgba(255,255,255,0.08);
+      letter-spacing: 0.02em;
+      font-weight: 500;
+    }
+
+    .header-right { margin-left: auto; display: flex; gap: 4px; align-items: center; }
+
+    /* ── Header buttons ── */
+    .hdr-btn {
+      background: var(--glass-1);
+      border: 1px solid var(--glass-border);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      min-height: 30px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.71rem;
+      line-height: 1.15;
+      font-weight: 500;
+      backdrop-filter: blur(12px);
+      transition: all 0.18s ease;
+      position: relative; overflow: hidden;
+      white-space: nowrap;
+    }
+    /* Shimmer on hover */
+    .hdr-btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -80%; width: 50%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+      transition: left 0.45s;
+      pointer-events: none;
+    }
+    .hdr-btn:hover {
+      background: var(--glass-2);
+      border-color: var(--primary);
+      color: var(--text);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 12px rgba(0,0,0,0.2), 0 0 0 1px var(--primary-glow) inset;
+    }
+    .hdr-btn:hover::before { left: 140%; }
+    .hdr-btn:active { transform: scale(0.98); transition-duration: 0.1s; }
+    .hdr-btn.active { border-color: var(--primary); color: var(--primary); background: var(--primary-glow); }
+
+    /* Top bar polish: consistent, professional outlined controls */
+    header .hdr-btn,
+    header .custom-select-btn {
+      border-width: 1px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    header .hdr-btn:hover,
+    header .custom-select-btn:hover,
+    header .custom-select.open .custom-select-btn {
+      transform: translateY(-1px);
+    }
+
+    /* Per-control accent outlines */
+    #menu-btn { border-color: rgba(148,163,184,0.42); }
+    #settings-btn { border-color: rgba(56,189,248,0.45); color: #7dd3fc; }
+    #projects-btn { border-color: rgba(34,211,238,0.45); color: #67e8f9; }
+    #workshop-btn { border-color: rgba(251,191,36,0.48); color: #fcd34d; }
+    #memory-btn { border-color: rgba(52,211,153,0.48); color: #6ee7b7; }
+    #toggle-sandbox { border-color: rgba(74,222,128,0.52); color: #86efac; }
+
+    .custom-select[data-for="chat-mode"] .custom-select-btn {
+      border-color: rgba(167,139,250,0.48);
+      color: #c4b5fd;
+    }
+    .custom-select[data-for="model-select"] .custom-select-btn {
+      border-color: rgba(129,140,248,0.48);
+      color: #c7d2fe;
+    }
+
+    /* Keep Minimal theme truly minimal while preserving outline structure */
+    [data-theme="minimal"] #settings-btn,
+    [data-theme="minimal"] #projects-btn,
+    [data-theme="minimal"] #workshop-btn,
+    [data-theme="minimal"] #memory-btn,
+    [data-theme="minimal"] #toggle-sandbox,
+    [data-theme="minimal"] .custom-select[data-for="chat-mode"] .custom-select-btn,
+    [data-theme="minimal"] .custom-select[data-for="model-select"] .custom-select-btn {
+      color: var(--text);
+    }
+
+    #reset-btn { border-color: var(--primary); color: var(--primary); }
+    #reset-btn:hover {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 0 24px var(--primary-glow), 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SIDEBAR
+       ═══════════════════════════════════════════════════════════ */
+    #sidebar {
+      width: 264px;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--glass-border);
+      display: flex; flex-direction: column;
+      transition: transform 0.38s cubic-bezier(0.25, 1, 0.5, 1);
+      position: absolute; top: 0; bottom: 0; left: 0; z-index: 900;
+      transform: translateX(-100%);
+      backdrop-filter: blur(40px) saturate(160%);
+      -webkit-backdrop-filter: blur(40px) saturate(160%);
+      box-shadow: 12px 0 40px rgba(0,0,0,0.4);
+    }
+    #sidebar.open { transform: translateX(0); }
+
+    [data-theme="minimal"] #sidebar {
+      background: #f8fafc;
+      box-shadow: 8px 0 24px rgba(15,23,42,0.08);
+    }
+
+    /* Sidebar prismatic edge */
+    #sidebar::after {
+      content: '';
+      position: absolute;
+      top: 0; right: -1px; bottom: 0; width: 1px;
+      background: var(--prism);
+      background-size: 100% 400%;
+      animation: prism-bar 8s linear infinite;
+      opacity: 0.3;
+    }
+
+    .sidebar-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--glass-border);
+      font-size: 0.7rem; font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .history-list { flex: 1; overflow-y: auto; padding: 8px; }
+    .history-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 11px 13px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      color: var(--text);
+      border: 1px solid var(--glass-border);
+      margin-bottom: 4px;
+      background: var(--glass-1);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .history-item:hover {
+      background: var(--glass-2);
+      border-color: var(--glass-border);
+      transform: translateX(4px) scale(1.01);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .history-item.active {
+      background: var(--primary-glow);
+      border-color: var(--primary);
+      color: var(--text);
+      box-shadow: 0 0 16px var(--primary-glow);
+    }
+    [data-theme="minimal"] .sidebar-header {
+      color: #475569;
+      background: #f1f5f9;
+    }
+    [data-theme="minimal"] .history-item {
+      color: #334155;
+      background: #ffffff;
+      border-color: #dbe3ec;
+    }
+    [data-theme="minimal"] .history-item:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      box-shadow: 0 2px 8px rgba(15,23,42,0.08);
+    }
+    [data-theme="minimal"] .history-item.active {
+      background: #dbeafe;
+      border-color: #93c5fd;
+      color: #0f172a;
+      box-shadow: none;
+    }
+    .history-title {
+      flex: 1; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .history-delete {
+      border: 1px solid var(--glass-border);
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 5px;
+      font-size: 0.65rem;
+      padding: 2px 7px;
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.15s;
+    }
+    .history-item:hover .history-delete,
+    .history-item.active .history-delete { opacity: 1; }
+    .history-delete:hover {
+      border-color: #f87171;
+      color: #f87171;
+      background: rgba(248,113,113,0.1);
+      transform: scale(1.1);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MODALS
+       ═══════════════════════════════════════════════════════════ */
+    #memory-modal, #settings-modal, #projects-modal, #workshop-modal {
+      position: fixed; inset: 0;
+      background: var(--overlay-bg);
+      display: none; align-items: center; justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(8px);
+      animation: backdrop-in 0.25s ease;
+    }
+    #memory-modal.open, #settings-modal.open, #projects-modal.open, #workshop-modal.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(920px, 93vw); height: min(80vh, 700px);
+      background: var(--modal-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      backdrop-filter: blur(50px) saturate(180%);
+      -webkit-backdrop-filter: blur(50px) saturate(180%);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset;
+      animation: modal-spring 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      position: relative;
+    }
+    /* Prismatic top edge on modals */
+    .modal-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 8%; right: 8%; height: 1px;
+      background: var(--prism);
+      background-size: 300% 100%;
+      animation: prism-bar 5s linear infinite;
+      opacity: 0.7;
+      z-index: 1;
+    }
+
+    .modal-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px 24px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .modal-header h3 { font-size: 0.83rem; color: var(--thinking-step); margin: 0; font-weight: 600; letter-spacing: 0.02em; }
+    .modal-body { flex: 1; overflow: auto; padding: 20px; }
+    .modal-close { margin-left: auto; border-color: var(--primary); color: var(--primary); }
+
+    .theme-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
+      gap: 12px; margin-top: 10px;
+    }
+    .theme-opt {
+      padding: 14px;
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      cursor: pointer; text-align: center;
+      transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+      background: var(--glass-1);
+      backdrop-filter: blur(12px);
+      position: relative; overflow: hidden;
+    }
+    .theme-opt::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .theme-opt.active {
+      border-color: var(--primary);
+      background: var(--primary-glow);
+      transform: scale(1.04);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3), 0 0 0 1px var(--primary-glow) inset;
+    }
+    .theme-opt:hover {
+      border-color: var(--primary);
+      transform: translateY(-4px) scale(1.02);
+      background: var(--glass-2);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+    }
+    .theme-opt .preview {
+      height: 38px; border-radius: 6px; margin-bottom: 8px;
+      display: flex; gap: 4px; padding: 5px;
+    }
+
+    .memory-tabs { display: flex; gap: 6px; margin-left: auto; }
+    .memory-tab {
+      font-size: 0.63rem; padding: 4px 10px; border-radius: 6px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-1); color: var(--text-muted); cursor: pointer;
+    }
+    .memory-tab.active { border-color: #34d399; color: #34d399; }
+    .memory-pre {
+      white-space: pre-wrap;
+      font-family: 'JetBrains Mono', 'Cascadia Code', monospace;
+      font-size: 0.76rem; color: var(--text);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MAIN LAYOUT
+       ═══════════════════════════════════════════════════════════ */
+    #main { flex: 1; display: flex; overflow: hidden; transition: padding-left 0.3s; position: relative; z-index: 1; }
+    #main.sidebar-open { padding-left: 264px; }
+    #chat-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    #sandbox-pane {
+      width: 0; overflow: hidden; background: var(--bg);
+      border-left: 1px solid var(--glass-border);
+      display: flex; flex-direction: column; transition: width 0.3s;
+    }
+    #sandbox-pane.open { width: 50%; }
+    @media (max-width: 800px) { #sandbox-pane.open { width: 100%; } }
+
+    /* ── Sandbox ── */
+    .sandbox-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px;
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--glass-border);
+      flex-shrink: 0;
+      backdrop-filter: blur(20px);
+    }
+    .sandbox-header span { font-size: 0.78rem; font-weight: 700; color: #34d399; }
+    .sandbox-header .spacer { flex: 1; }
+    .sb-btn {
+      background: transparent; border: 1px solid var(--glass-border);
+      color: var(--text-muted); padding: 3px 10px; border-radius: 5px;
+      cursor: pointer; font-size: 0.63rem; font-family: inherit;
+      transition: all 0.2s;
+    }
+    .sb-btn:hover { background: var(--glass-2); color: var(--text); }
+    .sb-btn.close-sb { border-color: var(--primary); color: var(--primary); }
+    #sandbox-frame { flex: 1; width: 100%; border: none; background: #fff; }
+
+    /* ═══════════════════════════════════════════════════════════
+       CHAT AREA
+       ═══════════════════════════════════════════════════════════ */
+    #chat-box {
+      flex: 1; overflow-y: auto;
+      padding: 20px 24px;
+      display: flex; flex-direction: column; gap: 12px;
+      position: relative; z-index: 1;
+    }
+
+    /* ── Message bubbles ── */
+    .msg {
+      max-width: 82%;
+      padding: 14px 18px;
+      border-radius: 18px;
+      line-height: 1.65;
+      font-size: 0.895rem;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      /* Glassmorphism */
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25), 0 1px 0 rgba(255,255,255,0.05) inset;
+      /* Physics bounce entrance */
+      animation: msg-bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      position: relative;
+      overflow: visible;
+    }
+    /* Shimmer refraction sweep */
+    .msg::after {
+      content: '';
+      position: absolute;
+      top: 14px;
+      left: 18px;
+      width: 48%;
+      height: calc(100% - 28px);
+      border-radius: 12px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent);
+      transform: translateX(-140%) skewX(-20deg);
+      pointer-events: none;
+      animation: shimmer-sweep 4s 0.5s ease-in-out infinite;
+    }
+    /* Glass highlight top edge */
+    .msg::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 12%; right: 12%; height: 1px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 999px;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: linear-gradient(145deg, var(--msg-user), rgba(109,40,217,0.06));
+      border-color: var(--msg-user-border);
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 8px 24px rgba(109,40,217,0.2), 0 1px 0 rgba(255,255,255,0.06) inset;
+    }
+    .msg.assistant {
+      align-self: flex-start;
+      background: linear-gradient(145deg, var(--msg-assistant), rgba(255,255,255,0.01));
+      border-color: var(--msg-assistant-border);
+      border-bottom-left-radius: 4px;
+    }
+    .msg .role {
+      font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
+      margin-bottom: 7px; letter-spacing: 0.08em; opacity: 0.7;
+    }
+    .msg.user .role { color: var(--thinking-step); }
+    .msg.assistant .role { color: var(--primary); }
+    .msg-text {
+      white-space: pre-wrap;
+      position: relative;
+      z-index: 1;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       CODE BLOCKS
+       ═══════════════════════════════════════════════════════════ */
+    .code-block {
+      position: relative; margin: 12px 0;
+      border-radius: 12px;
+      background: var(--code-bg);
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow: hidden;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+      transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s;
+    }
+    .code-block:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(0,0,0,0.5);
+      border-color: rgba(255,255,255,0.14);
+    }
+    /* Prismatic code block header line */
+    .code-block::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: var(--prism);
+      background-size: 300% 100%;
+      animation: prism-bar 4s linear infinite;
+      opacity: 0.45;
+    }
+    .code-block-header {
+      display: flex; align-items: center; padding: 7px 14px;
+      background: var(--code-header);
+      font-size: 0.63rem; color: var(--text-muted);
+    }
+    .code-block-header .lang { text-transform: uppercase; font-weight: 700; color: #34d399; letter-spacing: 0.05em; }
+    .code-block-header .spacer { flex: 1; }
+    .run-btn {
+      background: var(--primary); color: #fff; border: none;
+      padding: 4px 14px; border-radius: 5px; cursor: pointer;
+      font-size: 0.63rem; font-weight: 700; font-family: inherit;
+      transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .run-btn:hover { background: var(--primary-hover); transform: scale(1.05); }
+    .save-btn {
+      margin-left: 6px;
+      background: transparent; border: 1px solid var(--glass-border);
+      color: var(--text-muted); padding: 3px 8px; border-radius: 5px;
+      cursor: pointer; font-size: 0.63rem; font-weight: 700; font-family: inherit;
+      transition: all 0.2s;
+    }
+    .save-btn:hover { border-color: var(--primary); color: var(--text); }
+    .code-block pre {
+      padding: 12px 14px; overflow-x: auto;
+      font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 0.78rem; color: var(--text); margin: 0;
+      max-height: 360px; overflow-y: auto;
+      line-height: 1.6;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       REASONING / THINKING DROPDOWNS
+       ═══════════════════════════════════════════════════════════ */
+    .reasoning-dropdown { margin-top: 10px; border: none; font-size: 0.75rem; }
+    .reasoning-dropdown > summary {
+      cursor: pointer; color: var(--text-muted); font-size: 0.67rem;
+      padding: 4px 0; list-style: none; user-select: none;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .reasoning-dropdown > summary::-webkit-details-marker { display: none; }
+    .reasoning-dropdown > summary::marker { display: none; content: ""; }
+    .reasoning-dropdown > summary::before {
+      content: '▸'; display: inline-block;
+      transition: transform 0.2s; font-size: 0.58rem; color: var(--text-muted);
+    }
+    .reasoning-dropdown[open] > summary::before { transform: rotate(90deg); }
+    .reasoning-dropdown > summary:hover { color: var(--text); }
+    .reasoning-dropdown > summary .r-icon { font-size: 0.7rem; }
+    .reasoning-dropdown > summary .r-time { color: var(--text-muted); }
+    .reasoning-inner { padding: 8px 0 0; display: flex; flex-direction: column; gap: 4px; }
+
+    .agent-dropdown {
+      border: none; border-left: 2px solid var(--glass-border);
+      border-radius: 0 8px 8px 0;
+      background: rgba(0,0,0,0.5);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      margin-bottom: 2px;
+      backdrop-filter: blur(8px);
+    }
+    .agent-dropdown > summary {
+      cursor: pointer; padding: 5px 10px; font-size: 0.63rem;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      list-style: none; display: flex; align-items: center; gap: 6px; user-select: none;
+    }
+    .agent-dropdown > summary::-webkit-details-marker { display: none; }
+    .agent-dropdown > summary::marker { display: none; content: ""; }
+    .agent-dropdown > summary::before {
+      content: '▸'; font-size: 0.53rem; color: var(--text-muted);
+      display: inline-block; transition: transform 0.15s;
+    }
+    .agent-dropdown[open] > summary::before { transform: rotate(90deg); }
+    .agent-dropdown > summary .a-ms { color: var(--text-muted); font-weight: 400; font-size: 0.58rem; }
+    .agent-dropdown pre {
+      margin: 0; padding: 6px 10px; white-space: pre-wrap; color: var(--text);
+      font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;
+      max-height: 180px; overflow-y: auto; background: var(--code-bg);
+    }
+    /* agent colors */
+    .agent-Classifier   { border-left-color: #7eb8ff; } .agent-Classifier   > summary { color: #7eb8ff; }
+    .agent-Architect    { border-left-color: #fb923c; } .agent-Architect    > summary { color: #fb923c; }
+    .agent-Skeptic      { border-left-color: #f87171; } .agent-Skeptic      > summary { color: #f87171; }
+    .agent-Historian    { border-left-color: #a78bfa; } .agent-Historian    > summary { color: #a78bfa; }
+    .agent-Synthesizer  { border-left-color: #34d399; } .agent-Synthesizer  > summary { color: #34d399; }
+    .agent-Scribe       { border-left-color: #fbbf24; } .agent-Scribe       > summary { color: #fbbf24; }
+    .agent-Clarifier    { border-left-color: #fcd34d; } .agent-Clarifier    > summary { color: #fcd34d; }
+    .agent-Introspector { border-left-color: #60a5fa; } .agent-Introspector > summary { color: #60a5fa; }
+    .agent-ThoughtRecorder { border-left-color: #67e8f9; } .agent-ThoughtRecorder > summary { color: #67e8f9; }
+    .agent-BugChecker   { border-left-color: #f9a8d4; } .agent-BugChecker   > summary { color: #f9a8d4; }
+    .agent-ScribeRecorder { border-left-color: #fbbf24; } .agent-ScribeRecorder > summary { color: #fbbf24; }
+    .agent-SynthesizerFix { border-left-color: #2dd4bf; } .agent-SynthesizerFix > summary { color: #2dd4bf; }
+    .agent-Muse { border-left-color: #818cf8; } .agent-Muse > summary { color: #818cf8; }
+    .agent-Guide { border-left-color: #34d399; } .agent-Guide > summary { color: #34d399; }
+
+    /* ═══════════════════════════════════════════════════════════
+       THINKING BAR
+       ═══════════════════════════════════════════════════════════ */
+    #thinking-bar {
+      font-size: 0.68rem; color: var(--text-muted); text-align: center; padding: 6px;
+      background: rgba(255,255,255,0.015); min-height: 28px; flex-shrink: 0;
+      border-bottom: 1px solid var(--glass-border);
+      transition: opacity 0.5s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      backdrop-filter: blur(16px);
+    }
+    #thinking-bar .step { color: var(--thinking-step); font-weight: 600; }
+    #thinking-bar.fade { opacity: 0; }
+
+    /* ── Typing dots ── */
+    .typing-indicator {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 8px 16px;
+      background: var(--glass-1);
+      border-radius: 20px;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+    }
+    .typing-indicator span {
+      display: inline-block; width: 7px; height: 7px;
+      background: var(--primary); border-radius: 50%;
+      animation: typing-bounce 1.4s infinite ease-in-out both;
+    }
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+    /* ═══════════════════════════════════════════════════════════
+       INPUT BAR
+       ═══════════════════════════════════════════════════════════ */
+    form#chat-form {
+      display: flex; gap: 10px; padding: 14px 20px;
+      background: rgba(255,255,255,0.018);
+      border-top: 1px solid var(--glass-border);
+      backdrop-filter: blur(24px);
+      margin: 0 10px 10px;
+      border-radius: 20px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+      position: relative;
+    }
+    /* Prismatic top accent */
+    form#chat-form::before {
+      content: '';
+      position: absolute; top: -1px; left: 15%; right: 15%; height: 1px;
+      background: var(--prism);
+      background-size: 300% 100%;
+      animation: prism-bar 6s linear infinite;
+      opacity: 0.4;
+      border-radius: 999px;
+    }
+
+    #user-input {
+      flex: 1; padding: 13px 20px;
+      border: 1px solid var(--glass-border);
+      border-radius: 999px;
+      background: rgba(0,0,0,0.22);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.93rem;
+      outline: none;
+      transition: all 0.28s cubic-bezier(0.25, 0.8, 0.25, 1);
+      backdrop-filter: blur(12px);
+    }
+    #user-input::placeholder { color: var(--text-dim); }
+    #user-input:focus {
+      background: rgba(0,0,0,0.35);
+      border-color: rgba(167,139,250,0.45);
+      box-shadow: 0 0 0 3px rgba(167,139,250,0.1), 0 0 20px rgba(167,139,250,0.12);
+    }
+
+    #send-btn {
+      padding: 0 24px;
+      border: none; border-radius: 999px;
+      background: linear-gradient(135deg, #6d28d9, #a855f7, #ec4899);
+      background-size: 200% 200%;
+      color: #fff; font-size: 0.9rem; font-weight: 600;
+      font-family: inherit; cursor: pointer;
+      box-shadow: 0 4px 18px rgba(139,92,246,0.4);
+      transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative; overflow: hidden;
+    }
+    #send-btn::before {
+      content: '';
+      position: absolute; top: 0; left: -100%; width: 80%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.5s;
+    }
+    #send-btn:hover {
+      transform: translateY(-3px) scale(1.06);
+      box-shadow: 0 8px 28px rgba(139,92,246,0.55);
+    }
+    #send-btn:hover::before { left: 160%; }
+    #send-btn:active { transform: scale(0.94); box-shadow: 0 2px 10px rgba(139,92,246,0.3); }
+    #send-btn:disabled { background: #2a2a3a; color: #555; box-shadow: none; cursor: not-allowed; transform: none; }
+
+    /* ═══════════════════════════════════════════════════════════
+       USER ACCOUNT
+       ═══════════════════════════════════════════════════════════ */
+    .user-badge {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 0.7rem; color: var(--text-muted);
+      padding: 5px 11px; border-radius: 8px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-1);
+      cursor: pointer; font-family: inherit;
+      transition: all 0.2s;
+    }
+    .user-badge:hover { border-color: var(--primary); color: var(--text); }
+    .user-badge .avatar {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #ec4899);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.58rem; font-weight: 700;
+    }
+    .user-menu {
+      position: absolute; top: 100%; right: 0;
+      background: var(--menu-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px; padding: 8px 0; min-width: 185px;
+      box-shadow: 0 16px 50px rgba(0,0,0,0.6);
+      backdrop-filter: blur(30px);
+      display: none; z-index: 100;
+      animation: fadeUp 0.2s ease both;
+    }
+    .user-menu.show { display: block; }
+    .user-menu-item {
+      display: block; width: 100%; text-align: left;
+      padding: 9px 16px; border: none; background: none;
+      color: var(--text); font-size: 0.78rem; cursor: pointer;
+      font-family: inherit; transition: background 0.15s;
+    }
+    .user-menu-item:hover { background: var(--glass-2); }
+    .user-menu-item.danger { color: #f87171; }
+    .user-menu .api-key-display {
+      padding: 6px 16px; font-size: 0.66rem; color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace; word-break: break-all;
+      border-top: 1px solid var(--glass-border); margin-top: 4px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       TOASTS
+       ═══════════════════════════════════════════════════════════ */
+    .toast-container {
+      position: fixed; top: 16px; right: 16px; z-index: 9999;
+      display: flex; flex-direction: column; gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      padding: 12px 20px; border-radius: 12px;
+      font-size: 0.8rem; color: #fff;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      animation: fadeUp 0.3s ease-out;
+      max-width: 360px;
+      border: 1px solid rgba(255,255,255,0.1);
+      font-family: inherit;
+    }
+    .toast.success { background: rgba(52,211,153,0.85); color: #052e16; }
+    .toast.error   { background: rgba(239,68,68,0.85); }
+    .toast.info    { background: rgba(96,165,250,0.85); color: #172554; }
+    .toast.fadeout { animation: fadeUp 0.3s ease-in reverse forwards; }
+
+    /* ═══════════════════════════════════════════════════════════
+       MISC / UTILITIES
+       ═══════════════════════════════════════════════════════════ */
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .project-item {
+      border: 1px solid var(--glass-border); border-radius: 10px; padding: 10px;
+      display: flex; align-items: center; gap: 8px; background: var(--glass-1);
+      backdrop-filter: blur(12px);
+    }
+    .project-title { flex: 1; min-width: 0; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .kbd {
+      display: inline-block; padding: 1px 6px; border-radius: 4px;
+      border: 1px solid var(--glass-border); background: var(--code-bg);
+      font-size: 0.6rem; font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted); vertical-align: middle; margin: 0 2px;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary-glow);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+    /* ═══════════════════════════════════════════════════════════
+       CUSTOM SELECT DROPDOWNS
+       ═══════════════════════════════════════════════════════════ */
+    .custom-select {
+      position: relative;
+      display: inline-flex;
+      align-items: stretch;
+    }
+    /* Hide the native select — JS still uses it as state */
+    .custom-select-native {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      width: 0;
+      height: 0;
+    }
+    .custom-select-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--glass-1);
+      border: 1px solid var(--glass-border);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      min-height: 30px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.71rem;
+      line-height: 1.15;
+      font-weight: 600;
+      backdrop-filter: blur(12px);
+      transition: all 0.18s ease;
+      white-space: nowrap;
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.01em;
+    }
+    .custom-select-btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -80%; width: 50%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+      transition: left 0.45s;
+      pointer-events: none;
+    }
+    .custom-select-btn:hover,
+    .custom-select.open .custom-select-btn {
+      background: var(--glass-2);
+      border-color: var(--primary);
+      color: var(--text);
+      box-shadow: 0 3px 12px rgba(0,0,0,0.2), 0 0 0 1px var(--primary-glow) inset;
+    }
+    .custom-select-btn:hover:not(.open) { transform: translateY(-1px); }
+    .custom-select.open .custom-select-btn { transform: translateY(-1px); }
+    .custom-select-btn:hover::before { left: 140%; }
+    .custom-select-label { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .custom-select-chevron {
+      display: flex; align-items: center;
+      opacity: 0.55;
+      flex-shrink: 0;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .custom-select.open .custom-select-chevron { transform: rotate(180deg); opacity: 0.9; }
+
+    /* The floating panel */
+    .custom-select-panel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 7px);
+      left: 0;
+      min-width: 100%;
+      max-width: 300px;
+      background: var(--menu-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 13px;
+      padding: 5px;
+      backdrop-filter: blur(48px) saturate(200%);
+      -webkit-backdrop-filter: blur(48px) saturate(200%);
+      box-shadow:
+        0 20px 56px rgba(0,0,0,0.65),
+        0 4px 16px rgba(0,0,0,0.4),
+        0 0 0 1px rgba(255,255,255,0.04) inset;
+      z-index: 500;
+      flex-direction: column;
+      gap: 2px;
+      max-height: 340px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: absolute;
+    }
+    /* Prismatic top edge on panel */
+    .custom-select-panel::before {
+      content: '';
+      position: absolute; top: 0; left: 6%; right: 6%; height: 1px;
+      background: var(--prism);
+      background-size: 300% 100%;
+      animation: prism-bar 5s linear infinite;
+      opacity: 0.65;
+      pointer-events: none;
+    }
+    .custom-select.open .custom-select-panel {
+      display: flex;
+      animation: fadeUp 0.2s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+    }
+    /* Right-align panel when it would overflow viewport */
+    .custom-select-panel.align-right { left: auto; right: 0; }
+
+    .custom-select-option {
+      display: flex; align-items: center; gap: 8px;
+      width: 100%; text-align: left;
+      padding: 9px 13px;
+      border: none; border-radius: 8px;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 400;
+      cursor: pointer;
+      transition: background 0.14s, color 0.14s, transform 0.14s;
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+    }
+    .custom-select-option:hover {
+      background: var(--glass-2);
+      color: var(--text);
+      transform: translateX(2px);
+    }
+    .custom-select-option.is-selected {
+      color: var(--primary);
+      background: var(--primary-glow);
+      font-weight: 600;
+    }
+    .custom-select-option.is-selected::after {
+      content: '✓';
+      margin-left: auto;
+      font-size: 0.65rem;
+      opacity: 0.8;
+    }
+    /* Section divider between builtin + custom modes */
+    .custom-select-divider {
+      height: 1px;
+      background: var(--glass-border);
+      margin: 4px 6px;
+      flex-shrink: 0;
+    }
+
+    /* Scrollbar inside panel */
+    .custom-select-panel::-webkit-scrollbar { width: 4px; }
+    .custom-select-panel::-webkit-scrollbar-thumb { background: var(--primary-glow); border-radius: 2px; }
+
+    /* ═══════════════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════════════ */
+    @media (max-width: 600px) {
+      header { padding: 6px 8px; gap: 4px; flex-wrap: wrap; }
+      header h1 { font-size: 0.88rem; }
+      .header-right { gap: 3px; flex-wrap: wrap; }
+      .hdr-btn { font-size: 0.62rem; padding: 4px 8px; min-height: 28px; }
+      .custom-select-btn { font-size: 0.62rem; padding: 4px 8px; min-height: 28px; }
+      .msg { max-width: 94%; font-size: 0.84rem; }
+      form#chat-form { padding: 8px 10px; }
+      #user-input { font-size: 0.84rem; padding: 10px 14px; }
+      .modal-card { width: 98vw; height: 92vh; }
+      #sidebar { width: 220px; }
+      #main.sidebar-open { padding-left: 220px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background orb decorations -->
+  <div class="bg-orbs" aria-hidden="true" style="position:fixed;pointer-events:none;z-index:0;inset:0;overflow:hidden;">
+    <div style="position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(109,40,217,0.13) 0%,transparent 70%);top:-180px;left:-160px;animation:orb-float-1 22s ease-in-out infinite;filter:blur(60px);"></div>
+    <div style="position:absolute;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(236,72,153,0.11) 0%,transparent 70%);bottom:-120px;right:-100px;animation:orb-float-2 28s ease-in-out infinite;filter:blur(60px);"></div>
+    <div style="position:absolute;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,0.09) 0%,transparent 70%);top:35%;left:58%;animation:orb-float-1 36s ease-in-out infinite reverse;filter:blur(50px);"></div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <header>
+    <button id="menu-btn" class="hdr-btn">☰</button>
+    <h1>⬡ Vibe Engine</h1>
+    <span class="model-badge">{{ model }}</span>
+    <div class="header-right">
+      <button id="settings-btn" class="hdr-btn">Settings</button>
+      <select id="chat-mode" class="hdr-btn" title="Chat mode">
+        <option value="reasoning" selected>Reasoning</option>
+        <option value="conversational">Conversational</option>
+        <option value="direct">Direct</option>
+      </select>
+      <select id="model-select" class="hdr-btn">
+        {% for m in models %}
+          <option
+            value="{{ m.id }}"
+            data-provider="{{ m.provider or ('gemini' if m.id.startswith('gemini-') else 'huggingface') }}"
+            data-credit="{{ m.credit_multiplier if m.credit_multiplier is defined else 1.0 }}"
+            {% if m.id == model %}selected{% endif %}
+          >{{ m.name }}</option>
+        {% endfor %}
+      </select>
+      <button id="projects-btn" class="hdr-btn">Projects</button>
+      <button id="workshop-btn" class="hdr-btn">Workshop</button>
+      <button id="memory-btn" class="hdr-btn">Memory</button>
+      <button id="toggle-sandbox" class="hdr-btn">Sandbox</button>
+      <button id="reset-btn" class="hdr-btn">New Chat</button>
+    </div>
+  </header>
+
+  <div id="main" style="position: relative;">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="sidebar-header">Past Chats</div>
+      <div class="history-list" id="history-list"></div>
+      <div style="padding: 10px; border-top: 1px solid var(--border);">
+         <button id="new-chat-sidebar" class="hdr-btn" style="width: 100%; text-align: center;">+ New Chat</button>
+      </div>
+    </div>
+
+    <div id="chat-pane">
+      <div id="thinking-bar"></div>
+      <div id="chat-box"></div>
+      <form id="chat-form" autocomplete="off">
+        <input id="user-input" type="text" placeholder="Ask anything…" autofocus />
+        <button id="send-btn" type="submit">Send</button>
+      </form>
+    </div>
+
+    <div id="sandbox-pane">
+      <div class="sandbox-header">
+        <span>Code Sandbox</span>
+        <div class="spacer"></div>
+        <button class="sb-btn" id="sb-save">Save</button>
+        <button class="sb-btn" id="sb-reload">Reload</button>
+        <button class="sb-btn" id="sb-fullscreen">Fullscreen</button>
+        <button class="sb-btn close-sb" id="sb-close">Close</button>
+      </div>
+      <iframe id="sandbox-frame" sandbox="allow-scripts allow-modals"></iframe>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>User Settings</h3>
+        <button id="settings-close" class="hdr-btn modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom: 20px;">
+          <h4 style="font-size: 0.8rem; margin-bottom: 10px; color: var(--text-muted);">SELECT THEME</h4>
+          <div class="theme-grid">
+            <div class="theme-opt active" data-t="default">
+              <div class="preview" style="background: #0d0d1a;"><div style="width:10px; background:#e94560;"></div></div>
+              <div style="font-size:0.7rem;">Midnight Red</div>
+            </div>
+            <div class="theme-opt" data-t="midnight">
+              <div class="preview" style="background: #020617;"><div style="width:10px; background:#8b5cf6;"></div></div>
+              <div style="font-size:0.7rem;">Deep Purple</div>
+            </div>
+            <div class="theme-opt" data-t="light">
+              <div class="preview" style="background: #f5f5f7;"><div style="width:10px; background:#007aff;"></div></div>
+              <div style="font-size:0.7rem;">Clean Light</div>
+            </div>
+            <div class="theme-opt" data-t="minimal">
+              <div class="preview" style="background: #eef2f6;"><div style="width:10px; background:#2563eb;"></div></div>
+              <div style="font-size:0.7rem;">Minimal</div>
+            </div>
+            <div class="theme-opt" data-t="cyberpunk">
+              <div class="preview" style="background: #000;"><div style="width:10px; background:#00ff41;"></div></div>
+              <div style="font-size:0.7rem;">Matrix Green</div>
+            </div>
+            <div class="theme-opt" data-t="forest">
+              <div class="preview" style="background: #1a1c1a;"><div style="width:10px; background:#55efc4;"></div></div>
+              <div style="font-size:0.7rem;">Forest Mint</div>
+            </div>
+            <div class="theme-opt" data-t="crimson-black">
+              <div class="preview" style="background: linear-gradient(135deg,#2a0710,#000000);"><div style="width:10px; background:#ff2f5e;"></div></div>
+              <div style="font-size:0.7rem;">Crimson Black</div>
+            </div>
+            <div class="theme-opt" data-t="aurora">
+              <div class="preview" style="background: linear-gradient(135deg,#0f2440,#072625);"><div style="width:10px; background:#66f2d5;"></div></div>
+              <div style="font-size:0.7rem;">Aurora Glass</div>
+            </div>
+            <div class="theme-opt" data-t="sunset-neon">
+              <div class="preview" style="background: linear-gradient(135deg,#3c1230,#161028);"><div style="width:10px; background:#ff8a3d;"></div></div>
+              <div style="font-size:0.7rem;">Sunset Neon</div>
+            </div>
+          </div>
+          <h4 style="font-size: 0.8rem; margin: 20px 0 10px 0; color: var(--text-muted);">API CONFIGURATION</h4>
+          <div style="background: var(--code-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+             <label style="font-size: 0.75rem; display: block; margin-bottom: 6px; color: var(--text-muted);">GEMINI API KEY (Saved in Browser)</label>
+             <input type="password" id="api-key-input" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem;" placeholder="AIzaSy..." />
+             <div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted);">Required for Gemini models. Stored locally in browser. Models with available keys are marked with ✓ in the model dropdown.</div>
+
+             <label style="font-size: 0.75rem; display: block; margin: 14px 0 6px 0; color: var(--text-muted);">HUGGING FACE API KEY (Saved in Browser)</label>
+             <input type="password" id="hf-api-key-input" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem;" placeholder="hf_..." />
+             <div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted);">Required for Hugging Face models. Stored locally in browser. Relative credit multipliers are shown as xN per model.</div>
+
+             <div style="margin-top: 14px; padding: 10px; border: 1px dashed var(--border); border-radius: 8px;">
+               <label style="display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--text);">
+                 <input type="checkbox" id="trace-prompts-toggle" />
+                 Show internal prompts in reasoning traces
+               </label>
+               <div style="margin-top: 6px; font-size: 0.7rem; color: var(--text-muted);">Off by default for privacy. When enabled, full prompts sent to models are shown in the trace dropdown.</div>
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Memory Viewer Modal -->
+  <div id="memory-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>System Memory</h3>
+        <div class="memory-tabs">
+          <button class="memory-tab active" data-tab="manifesto">Manifesto</button>
+          <button class="memory-tab" data-tab="heuristics">Heuristics</button>
+          <button class="memory-tab" data-tab="failures">Failures</button>
+          <button class="memory-tab" data-tab="historian_notes">Historian</button>
+          <button class="memory-tab" data-tab="thought_journal">Thought Journal</button>
+        </div>
+        <button id="memory-close" class="hdr-btn modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <pre id="memory-content" class="memory-pre">Loading…</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Projects Modal -->
+  <div id="projects-modal">
+    <div class="modal-card" style="height:min(72vh,640px)">
+      <div class="modal-header">
+        <h3>Saved Projects</h3>
+        <button id="projects-close" class="hdr-btn modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="project-list" class="project-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workshop Modal -->
+  <div id="workshop-modal">
+    <div class="modal-card" style="width:min(1100px,95vw);height:min(86vh,760px)">
+      <div class="modal-header">
+        <h3>Agent Workshop</h3>
+        <button id="workshop-close" class="hdr-btn modal-close">✕</button>
+      </div>
+      <div class="modal-body" style="display:grid;grid-template-columns:280px 1fr;gap:14px;">
+        <div style="border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--header-bg);display:flex;flex-direction:column;gap:8px;">
+          <button id="workshop-new-mode" class="hdr-btn" style="width:100%;">+ New Custom Mode</button>
+          <div id="workshop-mode-list" style="display:flex;flex-direction:column;gap:6px;max-height:58vh;overflow:auto;"></div>
+        </div>
+
+        <div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg);display:flex;flex-direction:column;gap:10px;overflow:auto;">
+          <label style="font-size:0.72rem;color:var(--text-muted);">MODE NAME</label>
+          <input id="workshop-mode-name" type="text" style="padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--header-bg);color:var(--text);" placeholder="Story Chat / Coach Mode / Mentor Mode" />
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button id="workshop-add-agent" class="hdr-btn">+ Add Agent</button>
+            <button id="workshop-save-mode" class="hdr-btn">Save Mode</button>
+            <button id="workshop-clone-mode" class="hdr-btn">Clone Mode</button>
+            <button id="workshop-export-mode" class="hdr-btn">Export JSON</button>
+            <button id="workshop-import-mode" class="hdr-btn">Import JSON</button>
+            <button id="workshop-delete-mode" class="hdr-btn">Delete Mode</button>
+            <button id="workshop-use-mode" class="hdr-btn">Use This Mode</button>
+          </div>
+          <div id="workshop-meta" style="font-size:0.72rem;color:var(--text-muted);"></div>
+          <div id="workshop-agents" style="display:flex;flex-direction:column;gap:10px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ── Browser-Side Memory (LocalStorage) ───────────────────────────────────
+  // We mirror the chat history here so it persists across refreshes.
+  // Structure: 
+  // vibe_api_key: string
+  // vibe_hf_api_key: string
+  // vibe_chat_store_v1: { 
+  //    currentId: "...", 
+  //    sessions: { [id]: { timestamp: ..., title: "...", messages: [...] } } 
+  // }
+  // vibe_chat_mode: "reasoning" | "conversational" | "direct"
+  // vibe_custom_modes_v1: [{id,name,agents:[{name,persona,files,temperature}]}]
+  // vibe_include_trace_prompts: "1" | "0"
+  // vibe_projects_v1: [{id,title,lang,code,created_at}]
+  
+  const KEY_API = 'vibe_api_key';
+  const KEY_HF_API = 'vibe_hf_api_key';
+  const KEY_STORE = 'vibe_chat_store_v1';
+  const KEY_MODE = 'vibe_chat_mode';
+  const KEY_MODEL = 'vibe_selected_model';
+  const KEY_PROJECTS = 'vibe_projects_v1';
+  const KEY_CUSTOM_MODES = 'vibe_custom_modes_v1';
+  const KEY_TRACE_PROMPTS = 'vibe_include_trace_prompts';
+
+  /* ── Toast Notifications ─────────────────────────────────── */
+  function showToast(msg, type = 'info', duration = 3000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.textContent = msg;
+    container.appendChild(t);
+    setTimeout(() => {
+      t.classList.add('fadeout');
+      t.addEventListener('animationend', () => t.remove());
+    }, duration);
+  }
+
+  const BUILTIN_MODES = [
+    { id: 'reasoning', name: '🧠 Reasoning', agents: 7, builtin: true },
+    { id: 'conversational', name: '🎭 Conversational', agents: 2, builtin: true },
+    { id: 'direct', name: '⚡ Direct', agents: 1, builtin: true },
+  ];
+
+  function loadCustomModes() {
+    try {
+      const items = JSON.parse(localStorage.getItem(KEY_CUSTOM_MODES) || '[]');
+      return Array.isArray(items) ? items : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function saveCustomModes(items) {
+    localStorage.setItem(KEY_CUSTOM_MODES, JSON.stringify(items || []));
+  }
+
+  function getAllModes() {
+    const custom = loadCustomModes().map(m => ({
+      id: m.id,
+      name: `🧪 ${m.name || 'Custom Mode'}`,
+      agents: Array.isArray(m.agents) ? m.agents.length : 0,
+      builtin: false,
+    }));
+    return [...BUILTIN_MODES, ...custom];
+  }
+
+  function getCustomModeById(modeId) {
+    return loadCustomModes().find(m => m.id === modeId) || null;
+  }
+
+  function populateModeSelect() {
+    if (!modeSelect) return;
+    const current = localStorage.getItem(KEY_MODE) || 'reasoning';
+    const modes = getAllModes();
+    modeSelect.innerHTML = '';
+    modes.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = `${m.name} (${m.agents})`;
+      modeSelect.appendChild(opt);
+    });
+    const exists = modes.some(m => m.id === current);
+    modeSelect.value = exists ? current : 'reasoning';
+    setMode(modeSelect.value);
+  }
+  
+  // API Key Manager
+  const apiKeyInput = document.getElementById('api-key-input');
+  const hfApiKeyInput = document.getElementById('hf-api-key-input');
+  const tracePromptsToggle = document.getElementById('trace-prompts-toggle');
+  
+  function getApiKey() { return localStorage.getItem(KEY_API) || ''; }
+  function setApiKey(k) { localStorage.setItem(KEY_API, k.trim()); }
+  function getHfApiKey() { return localStorage.getItem(KEY_HF_API) || ''; }
+  function setHfApiKey(k) { localStorage.setItem(KEY_HF_API, k.trim()); }
+  function getMode() {
+    const mode = localStorage.getItem(KEY_MODE) || 'reasoning';
+    const valid = getAllModes().map(m => m.id);
+    return valid.includes(mode) ? mode : 'reasoning';
+  }
+  function setMode(m) {
+    const valid = getAllModes().map(x => x.id);
+    const safe = valid.includes(m) ? m : 'reasoning';
+    localStorage.setItem(KEY_MODE, safe);
+  }
+  function getSelectedModel() { return localStorage.getItem(KEY_MODEL) || ''; }
+  function setSelectedModel(m) { if (m) localStorage.setItem(KEY_MODEL, m); }
+  function getIncludeTracePrompts() { return localStorage.getItem(KEY_TRACE_PROMPTS) === '1'; }
+  function setIncludeTracePrompts(v) { localStorage.setItem(KEY_TRACE_PROMPTS, v ? '1' : '0'); }
+
+  function hasAnyApiKey() {
+    return !!(getApiKey().trim() || getHfApiKey().trim());
+  }
+
+  function inferProvider(modelId = '') {
+    return modelId.startsWith('gemini-') ? 'gemini' : 'huggingface';
+  }
+
+  function hasProviderKey(provider) {
+    return provider === 'gemini' ? !!getApiKey().trim() : !!getHfApiKey().trim();
+  }
+
+  function refreshModelOptionMeta() {
+    if (!modelSelect) return;
+    for (const opt of Array.from(modelSelect.options || [])) {
+      if (!opt.dataset.baseLabel) opt.dataset.baseLabel = opt.textContent.trim();
+
+      const provider = opt.dataset.provider || inferProvider(opt.value || '');
+      const hasKey = hasProviderKey(provider);
+      const credit = Number(opt.dataset.credit || '1');
+      const creditLabel = Number.isFinite(credit) ? credit.toFixed(2).replace(/\.00$/, '') : '1';
+
+      opt.textContent = `${hasKey ? '✓ ' : ''}${opt.dataset.baseLabel} · x${creditLabel}`;
+      opt.title = `${provider === 'gemini' ? 'Gemini' : 'Hugging Face'} · credit x${creditLabel}${hasKey ? ' · key available' : ' · key missing'}`;
+    }
+  }
+
+  function loadProjects() {
+    try {
+      return JSON.parse(localStorage.getItem(KEY_PROJECTS) || '[]');
+    } catch (_) {
+      return [];
+    }
+  }
+  function saveProjects(items) {
+    localStorage.setItem(KEY_PROJECTS, JSON.stringify(items));
+  }
+  
+  apiKeyInput.value = getApiKey();
+  hfApiKeyInput.value = getHfApiKey();
+  if (tracePromptsToggle) {
+    tracePromptsToggle.checked = getIncludeTracePrompts();
+    tracePromptsToggle.addEventListener('change', (e) => {
+      setIncludeTracePrompts(!!e.target.checked);
+    });
+  }
+  apiKeyInput.addEventListener('input', (e) => {
+    setApiKey(e.target.value);
+    refreshModelOptionMeta();
+  });
+  hfApiKeyInput.addEventListener('input', (e) => {
+    setHfApiKey(e.target.value);
+    refreshModelOptionMeta();
+  });
+
+  // Chat Store Manager
+  function loadStore() {
+    try {
+      const raw = localStorage.getItem(KEY_STORE);
+      if (!raw) return { currentId: null, sessions: {} };
+      return JSON.parse(raw);
+    } catch(e) { return { currentId: null, sessions: {} }; }
+  }
+  
+  function saveStore(s) {
+    try { localStorage.setItem(KEY_STORE, JSON.stringify(s)); } catch(e){ console.error(e); }
+  }
+
+  let store = loadStore();
+  
+  // Ensure current session exists
+  if (!store.currentId || !store.sessions[store.currentId]) {
+    const newId = Date.now().toString();
+    store.sessions[newId] = { timestamp: Date.now(), title: 'New Chat', messages: [] };
+    store.currentId = newId;
+    saveStore(store);
+  }
+
+  let sessionMessages = store.sessions[store.currentId].messages;
+
+  function saveCurrentChat() {
+    if (!store.currentId) return;
+    store.sessions[store.currentId].messages = sessionMessages;
+    // Update title based on first user message if needed
+    if (store.sessions[store.currentId].title === 'New Chat' && sessionMessages.length > 0) {
+      const first = sessionMessages.find(m => m.role === 'user');
+      if (first) {
+        store.sessions[store.currentId].title = first.content.slice(0, 30) + (first.content.length>30?'...':'');
+      }
+    }
+    store.sessions[store.currentId].timestamp = Date.now();
+    saveStore(store);
+    renderHistory();
+  }
+
+  function startNewChat() {
+    const newId = Date.now().toString();
+    store.sessions[newId] = { timestamp: Date.now(), title: 'New Chat', messages: [] };
+    store.currentId = newId;
+    saveStore(store);
+    window.location.reload();
+  }
+  
+  function switchChat(id) {
+    if (store.sessions[id]) {
+      store.currentId = id;
+      saveStore(store);
+      window.location.reload();
+    }
+  }
+
+  // Render Sidebar
+  const historyList = document.getElementById('history-list');
+  const main = document.getElementById('main');
+
+  function deleteChat(id) {
+    const sess = store.sessions[id];
+    if (!sess) return;
+
+    const title = sess.title || 'Untitled';
+    if (!confirm(`Delete chat "${title}"?`)) return;
+
+    const deletingCurrent = id === store.currentId;
+    delete store.sessions[id];
+
+    if (Object.keys(store.sessions).length === 0) {
+      const newId = Date.now().toString();
+      store.sessions[newId] = { timestamp: Date.now(), title: 'New Chat', messages: [] };
+      store.currentId = newId;
+      saveStore(store);
+      window.location.reload();
+      return;
+    }
+
+    if (deletingCurrent) {
+      const nextId = Object.keys(store.sessions)
+        .sort((a,b) => store.sessions[b].timestamp - store.sessions[a].timestamp)[0];
+      store.currentId = nextId;
+      saveStore(store);
+      window.location.reload();
+      return;
+    }
+
+    saveStore(store);
+    renderHistory();
+  }
+
+  function renderHistory() {
+    historyList.innerHTML = '';
+    const ids = Object.keys(store.sessions).sort((a,b) => store.sessions[b].timestamp - store.sessions[a].timestamp);
+    ids.forEach(id => {
+      const sess = store.sessions[id];
+      const div = document.createElement('div');
+      div.className = 'history-item' + (id === store.currentId ? ' active' : '');
+
+      const title = document.createElement('span');
+      title.className = 'history-title';
+      title.textContent = sess.title || 'Untitled';
+
+      const del = document.createElement('button');
+      del.className = 'history-delete';
+      del.type = 'button';
+      del.title = 'Delete chat';
+      del.textContent = '✕';
+      del.onclick = (e) => {
+        e.stopPropagation();
+        deleteChat(id);
+      };
+
+      div.appendChild(title);
+      div.appendChild(del);
+      div.onclick = () => { if(id !== store.currentId) switchChat(id); };
+      historyList.appendChild(div);
+    });
+  }
+
+  // Sidebar controls
+  const sidebar = document.getElementById('sidebar');
+  const menuBtn = document.getElementById('menu-btn');
+  const newChatSidebar = document.getElementById('new-chat-sidebar');
+  
+  menuBtn.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    main.classList.toggle('sidebar-open', sidebar.classList.contains('open'));
+  });
+  newChatSidebar.addEventListener('click', startNewChat);
+
+  const chatBox      = document.getElementById('chat-box');
+  const form         = document.getElementById('chat-form');
+  const input        = document.getElementById('user-input');
+  
+  // ── Restore Chat on Load ──────────────────────────────────────────────
+  window.addEventListener('load', () => {
+    // Open settings only when no provider key exists at all.
+    if (!hasAnyApiKey()) {
+      openSettings();
+    }
+
+    refreshModelOptionMeta();
+
+    renderHistory();
+    // Wait a tick for DOM
+    setTimeout(() => {
+      if (sessionMessages && sessionMessages.length > 0) {
+        sessionMessages.forEach(m => {
+          if (m.role === 'user') {
+            addUserMsg(m.content, false); 
+          } else {
+            addAssistantMsg(m.content, m.classification, m.traces, false);
+          }
+        });
+      }
+    }, 50);
+  });
+  const sendBtn      = document.getElementById('send-btn');
+  const resetBtn     = document.getElementById('reset-btn');
+  const sandboxBtn   = document.getElementById('toggle-sandbox');
+  const modeSelect   = document.getElementById('chat-mode');
+  const modelSelect  = document.getElementById('model-select');
+  const projectsBtn  = document.getElementById('projects-btn');
+  const projectsModal = document.getElementById('projects-modal');
+  const projectsClose = document.getElementById('projects-close');
+  const projectList = document.getElementById('project-list');
+  const workshopBtn = document.getElementById('workshop-btn');
+  const workshopModal = document.getElementById('workshop-modal');
+  const workshopClose = document.getElementById('workshop-close');
+  const workshopModeList = document.getElementById('workshop-mode-list');
+  const workshopModeName = document.getElementById('workshop-mode-name');
+  const workshopAgents = document.getElementById('workshop-agents');
+  const workshopNewModeBtn = document.getElementById('workshop-new-mode');
+  const workshopAddAgentBtn = document.getElementById('workshop-add-agent');
+  const workshopSaveModeBtn = document.getElementById('workshop-save-mode');
+  const workshopCloneModeBtn = document.getElementById('workshop-clone-mode');
+  const workshopExportModeBtn = document.getElementById('workshop-export-mode');
+  const workshopImportModeBtn = document.getElementById('workshop-import-mode');
+  const workshopDeleteModeBtn = document.getElementById('workshop-delete-mode');
+  const workshopUseModeBtn = document.getElementById('workshop-use-mode');
+  const workshopMeta = document.getElementById('workshop-meta');
+  const memoryBtn    = document.getElementById('memory-btn');
+  const memoryModal  = document.getElementById('memory-modal');
+  const memoryClose  = document.getElementById('memory-close');
+  const memoryContent = document.getElementById('memory-content');
+  const thinkBar     = document.getElementById('thinking-bar');
+  const sandboxPane  = document.getElementById('sandbox-pane');
+  const sandboxFrame = document.getElementById('sandbox-frame');
+
+  // Themes & Settings
+  const settingsBtn = document.getElementById('settings-btn');
+  const settingsModal = document.getElementById('settings-modal');
+  const settingsClose = document.getElementById('settings-close');
+  const themes = document.querySelectorAll('.theme-opt');
+
+  function applySavedModelSelection() {
+    if (!modelSelect) return;
+    const saved = getSelectedModel().trim();
+    const exists = saved && Array.from(modelSelect.options || []).some(o => o.value === saved);
+    if (exists) {
+      modelSelect.value = saved;
+      return;
+    }
+    setSelectedModel(modelSelect.value || '');
+  }
+
+  function openSettings() { settingsModal.classList.add('open'); }
+  function closeSettings() { settingsModal.classList.remove('open'); }
+  function setTheme(t) {
+    document.body.dataset.theme = t;
+    themes.forEach(opt => opt.classList.toggle('active', opt.dataset.t === t));
+    localStorage.setItem('vibe_theme', t);
+  }
+
+  /* ── Custom glass dropdowns ────────────────────────────────── */
+  function buildCustomSelects() {
+    const ids = ['chat-mode', 'model-select'];
+    ids.forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel || sel.dataset.customized) return;
+      sel.dataset.customized = '1';
+
+      // Wrap the native select
+      const wrapper = document.createElement('div');
+      wrapper.className = 'custom-select';
+      wrapper.dataset.for = id;
+      sel.parentNode.insertBefore(wrapper, sel);
+      wrapper.appendChild(sel);
+      sel.classList.add('custom-select-native');
+
+      // Trigger button
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'custom-select-btn';
+
+      const lbl = document.createElement('span');
+      lbl.className = 'custom-select-label';
+
+      const chev = document.createElement('span');
+      chev.className = 'custom-select-chevron';
+      chev.innerHTML = `<svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+      btn.appendChild(lbl);
+      btn.appendChild(chev);
+      wrapper.appendChild(btn);
+
+      // Floating panel
+      const panel = document.createElement('div');
+      panel.className = 'custom-select-panel';
+      wrapper.appendChild(panel);
+
+      let syncTimer = null;
+      function sync() {
+        clearTimeout(syncTimer);
+        syncTimer = setTimeout(() => {
+          const cur = sel.value;
+          lbl.textContent = sel.options[sel.selectedIndex]?.text ?? '';
+          panel.innerHTML = '';
+
+          // Prismatic edge pseudo (stays from CSS ::before)
+          let prevGroup = null;
+          Array.from(sel.options).forEach(opt => {
+            // Add divider between builtin & custom modes
+            const grp = opt.dataset.group || '';
+            if (prevGroup !== null && grp !== prevGroup) {
+              const div = document.createElement('div');
+              div.className = 'custom-select-divider';
+              panel.appendChild(div);
+            }
+            prevGroup = grp;
+
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'custom-select-option' + (opt.value === cur ? ' is-selected' : '');
+            item.textContent = opt.text;
+            item.dataset.value = opt.value;
+            item.addEventListener('click', e => {
+              e.stopPropagation();
+              sel.value = opt.value;
+              sel.dispatchEvent(new Event('change', { bubbles: true }));
+              closeAll();
+            });
+            panel.appendChild(item);
+          });
+
+          // Right-align if panel would overflow viewport
+          const rect = wrapper.getBoundingClientRect();
+          panel.classList.toggle('align-right', rect.left + 300 > window.innerWidth);
+        }, 16);
+      }
+
+      sync();
+
+      // Observe option list changes (populateModeSelect replaces innerHTML)
+      new MutationObserver(sync).observe(sel, { childList: true, subtree: true });
+      // Observe value changes from external code
+      sel.addEventListener('change', sync);
+
+      // Toggle open
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const wasOpen = wrapper.classList.contains('open');
+        closeAll();
+        if (!wasOpen) wrapper.classList.add('open');
+      });
+    });
+
+    function closeAll() {
+      document.querySelectorAll('.custom-select.open').forEach(w => w.classList.remove('open'));
+    }
+    document.addEventListener('click', closeAll);
+  }
+
+  settingsBtn.addEventListener('click', openSettings);
+  settingsClose.addEventListener('click', closeSettings);
+  settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) closeSettings(); });
+  themes.forEach(opt => opt.addEventListener('click', () => setTheme(opt.dataset.t)));
+  applySavedModelSelection();
+  refreshModelOptionMeta();
+  populateModeSelect();
+  buildCustomSelects();
+  modeSelect.addEventListener('change', () => {
+    setMode(modeSelect.value);
+    populateModeSelect();
+  });
+  modelSelect?.addEventListener('change', () => {
+    setSelectedModel(modelSelect.value || '');
+    refreshModelOptionMeta();
+    if (!hasAnyApiKey()) openSettings();
+  });
+
+  const savedTheme = localStorage.getItem('vibe_theme') || 'default';
+  setTheme(savedTheme);
+
+  let lastHtmlCode = '';
+  let memoryData = null;
+  let stageTimer = null;
+  let workshopFiles = [];
+  let activeWorkshopMode = null;
+
+  /* ── Sandbox ──────────────────────────────────────────────────── */
+  function openSandbox(htmlCode) {
+    lastHtmlCode = htmlCode;
+    sandboxPane.classList.add('open');
+    sandboxBtn.classList.add('active');
+    sandboxFrame.srcdoc = htmlCode;
+  }
+  function closeSandbox() {
+    sandboxPane.classList.remove('open');
+    sandboxBtn.classList.remove('active');
+    sandboxFrame.srcdoc = '';
+  }
+  sandboxBtn.addEventListener('click', () => {
+    sandboxPane.classList.contains('open') ? closeSandbox()
+      : lastHtmlCode ? openSandbox(lastHtmlCode) : null;
+  });
+  document.getElementById('sb-close').addEventListener('click', closeSandbox);
+  document.getElementById('sb-reload').addEventListener('click', () => {
+    if (lastHtmlCode) sandboxFrame.srcdoc = lastHtmlCode;
+  });
+  document.getElementById('sb-fullscreen').addEventListener('click', () => {
+    sandboxFrame.requestFullscreen?.() || sandboxFrame.webkitRequestFullscreen?.();
+  });
+  document.getElementById('sb-save').addEventListener('click', () => {
+    if (!lastHtmlCode) return;
+    saveProjectFromCode(lastHtmlCode, 'html');
+  });
+
+  function saveProjectFromCode(code, lang = 'text') {
+    const defaultTitle = `Project ${new Date().toLocaleString()}`;
+    const title = prompt('Project name:', defaultTitle);
+    if (!title) return;
+
+    const projects = loadProjects();
+    projects.unshift({
+      id: Date.now().toString(),
+      title: title.trim(),
+      lang,
+      code,
+      created_at: Date.now(),
+    });
+    saveProjects(projects.slice(0, 200));
+    renderProjects();
+    projectsModal.classList.add('open');
+  }
+
+  function renderProjects() {
+    const projects = loadProjects();
+    projectList.innerHTML = '';
+
+    if (!projects.length) {
+      projectList.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem;">No saved projects yet.</div>';
+      return;
+    }
+
+    projects.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'project-item';
+
+      const t = document.createElement('div');
+      t.className = 'project-title';
+      t.textContent = `${p.title} • ${p.lang || 'text'}`;
+
+      const openBtn = document.createElement('button');
+      openBtn.className = 'hdr-btn';
+      openBtn.textContent = 'Open';
+      openBtn.onclick = () => {
+        openSandbox(p.code || '');
+      };
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'hdr-btn';
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = () => {
+        const filtered = loadProjects().filter(x => x.id !== p.id);
+        saveProjects(filtered);
+        renderProjects();
+      };
+
+      row.appendChild(t);
+      row.appendChild(openBtn);
+      row.appendChild(delBtn);
+      projectList.appendChild(row);
+    });
+  }
+
+  function openProjects() {
+    renderProjects();
+    projectsModal.classList.add('open');
+  }
+  function closeProjects() { projectsModal.classList.remove('open'); }
+
+  projectsBtn.addEventListener('click', openProjects);
+  projectsClose.addEventListener('click', closeProjects);
+  projectsModal.addEventListener('click', (e) => { if (e.target === projectsModal) closeProjects(); });
+
+  /* ── Agent Workshop ─────────────────────────────────────────── */
+  function slugify(s) {
+    return (s || 'custom-mode')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40) || 'custom-mode';
+  }
+
+  function makeAgent(name = 'Agent') {
+    return {
+      name,
+      persona: 'You are a helpful assistant with a distinct, friendly personality.',
+      files: [],
+      temperature: 0.7,
+    };
+  }
+
+  function makeMode(name = 'New Custom Mode') {
+    const id = `custom:${slugify(name)}-${Date.now().toString().slice(-5)}`;
+    return { id, name, agents: [makeAgent('Planner'), makeAgent('Writer')] };
+  }
+
+  function cloneMode(mode) {
+    const baseName = `${mode?.name || 'Custom Mode'} Copy`;
+    const cloned = JSON.parse(JSON.stringify(mode || makeMode()));
+    cloned.id = `custom:${slugify(baseName)}-${Date.now().toString().slice(-5)}`;
+    cloned.name = baseName;
+    return cloned;
+  }
+
+  function renderWorkshopModeList() {
+    const modes = loadCustomModes();
+    workshopModeList.innerHTML = '';
+    if (!modes.length) {
+      workshopModeList.innerHTML = '<div style="font-size:0.78rem;color:var(--text-muted);">No custom modes yet.</div>';
+      return;
+    }
+    modes.forEach(m => {
+      const row = document.createElement('button');
+      row.className = 'hdr-btn';
+      row.style.textAlign = 'left';
+      row.style.width = '100%';
+      row.textContent = `${m.name || 'Custom Mode'} (${(m.agents || []).length})`;
+      if (activeWorkshopMode && activeWorkshopMode.id === m.id) row.classList.add('active');
+      row.onclick = () => {
+        activeWorkshopMode = JSON.parse(JSON.stringify(m));
+        renderWorkshopEditor();
+      };
+      workshopModeList.appendChild(row);
+    });
+  }
+
+  function fileOptionsHtml(selected = []) {
+    return workshopFiles.map(f => {
+      const sel = selected.includes(f) ? 'selected' : '';
+      return `<option value="${esc(f)}" ${sel}>${esc(f)}</option>`;
+    }).join('');
+  }
+
+  function renderWorkshopEditor() {
+    if (!activeWorkshopMode) return;
+    workshopModeName.value = activeWorkshopMode.name || '';
+    workshopAgents.innerHTML = '';
+    const agentCount = (activeWorkshopMode.agents || []).length;
+    const fileCount = (activeWorkshopMode.agents || []).reduce((sum, a) => sum + (Array.isArray(a.files) ? a.files.length : 0), 0);
+    workshopMeta.textContent = `Agents: ${agentCount} • Attached files: ${fileCount}`;
+
+    (activeWorkshopMode.agents || []).forEach((a, idx) => {
+      const card = document.createElement('div');
+      card.style.border = '1px solid var(--border)';
+      card.style.borderRadius = '8px';
+      card.style.padding = '10px';
+      card.style.background = 'var(--header-bg)';
+      card.innerHTML =
+        `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">` +
+          `<strong style="font-size:0.78rem;">Agent ${idx + 1}</strong>` +
+          `<button class="hdr-btn" data-up="${idx}">↑</button>` +
+          `<button class="hdr-btn" data-down="${idx}">↓</button>` +
+          `<button class="hdr-btn" data-del="${idx}">Remove</button>` +
+        `</div>` +
+        `<label style="display:block;font-size:0.7rem;color:var(--text-muted);margin-top:8px;">NAME</label>` +
+        `<input data-name="${idx}" value="${esc(a.name || '')}" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);" />` +
+        `<label style="display:block;font-size:0.7rem;color:var(--text-muted);margin-top:8px;">PERSONALITY / SYSTEM TEXT</label>` +
+        `<textarea data-persona="${idx}" rows="4" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);">${esc(a.persona || '')}</textarea>` +
+        `<label style="display:block;font-size:0.7rem;color:var(--text-muted);margin-top:8px;">ATTACHED FILES (multi-select)</label>` +
+        `<select data-files="${idx}" multiple size="6" style="width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);">${fileOptionsHtml(a.files || [])}</select>` +
+        `<label style="display:block;font-size:0.7rem;color:var(--text-muted);margin-top:8px;">TEMPERATURE (0.0 - 1.5)</label>` +
+        `<input data-temp="${idx}" type="number" min="0" max="1.5" step="0.1" value="${Number(a.temperature ?? 0.7)}" style="width:150px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);" />`;
+      workshopAgents.appendChild(card);
+    });
+
+    workshopAgents.querySelectorAll('[data-name]').forEach(el => {
+      el.addEventListener('input', (e) => {
+        const i = Number(e.target.dataset.name);
+        activeWorkshopMode.agents[i].name = e.target.value;
+      });
+    });
+    workshopAgents.querySelectorAll('[data-persona]').forEach(el => {
+      el.addEventListener('input', (e) => {
+        const i = Number(e.target.dataset.persona);
+        activeWorkshopMode.agents[i].persona = e.target.value;
+      });
+    });
+    workshopAgents.querySelectorAll('[data-files]').forEach(el => {
+      el.addEventListener('change', (e) => {
+        const i = Number(e.target.dataset.files);
+        activeWorkshopMode.agents[i].files = Array.from(e.target.selectedOptions).map(o => o.value);
+      });
+    });
+    workshopAgents.querySelectorAll('[data-temp]').forEach(el => {
+      el.addEventListener('input', (e) => {
+        const i = Number(e.target.dataset.temp);
+        const v = Number(e.target.value || 0.7);
+        activeWorkshopMode.agents[i].temperature = Math.max(0, Math.min(1.5, v));
+      });
+    });
+
+    workshopAgents.querySelectorAll('[data-up]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = Number(btn.dataset.up);
+        if (i <= 0) return;
+        const a = activeWorkshopMode.agents;
+        [a[i - 1], a[i]] = [a[i], a[i - 1]];
+        renderWorkshopEditor();
+      });
+    });
+    workshopAgents.querySelectorAll('[data-down]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = Number(btn.dataset.down);
+        const a = activeWorkshopMode.agents;
+        if (i >= a.length - 1) return;
+        [a[i + 1], a[i]] = [a[i], a[i + 1]];
+        renderWorkshopEditor();
+      });
+    });
+    workshopAgents.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = Number(btn.dataset.del);
+        activeWorkshopMode.agents.splice(i, 1);
+        if (!activeWorkshopMode.agents.length) activeWorkshopMode.agents.push(makeAgent('Agent 1'));
+        renderWorkshopEditor();
+      });
+    });
+  }
+
+  async function openWorkshop() {
+    workshopModal.classList.add('open');
+    try {
+      const res = await fetch('/api/workshop/files');
+      const data = await res.json();
+      workshopFiles = Array.isArray(data.files) ? data.files : [];
+    } catch (_) {
+      workshopFiles = [];
+    }
+
+    const modes = loadCustomModes();
+    activeWorkshopMode = modes[0] ? JSON.parse(JSON.stringify(modes[0])) : makeMode();
+    renderWorkshopModeList();
+    renderWorkshopEditor();
+  }
+
+  function closeWorkshop() { workshopModal.classList.remove('open'); }
+
+  function saveActiveWorkshopMode() {
+    if (!activeWorkshopMode) return;
+    activeWorkshopMode.name = (workshopModeName.value || activeWorkshopMode.name || 'Custom Mode').trim();
+    if (!activeWorkshopMode.name) activeWorkshopMode.name = 'Custom Mode';
+
+    const modes = loadCustomModes();
+    const idx = modes.findIndex(m => m.id === activeWorkshopMode.id);
+    if (idx >= 0) modes[idx] = activeWorkshopMode;
+    else modes.push(activeWorkshopMode);
+    saveCustomModes(modes);
+    renderWorkshopModeList();
+    populateModeSelect();
+  }
+
+  function exportActiveWorkshopMode() {
+    if (!activeWorkshopMode) return;
+    const payload = JSON.stringify(activeWorkshopMode, null, 2);
+    const blob = new Blob([payload], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${slugify(activeWorkshopMode.name || 'custom-mode')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function importWorkshopMode() {
+    const raw = prompt('Paste exported mode JSON:');
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') throw new Error('Invalid object');
+      if (!Array.isArray(parsed.agents) || !parsed.agents.length) throw new Error('Mode requires at least one agent');
+
+      const sanitized = {
+        id: `custom:${slugify(parsed.name || 'imported-mode')}-${Date.now().toString().slice(-5)}`,
+        name: String(parsed.name || 'Imported Mode').slice(0, 64),
+        agents: parsed.agents.slice(0, 16).map((a, i) => ({
+          name: String(a?.name || `Agent ${i + 1}`).slice(0, 40),
+          persona: String(a?.persona || 'You are a helpful assistant.'),
+          files: Array.isArray(a?.files) ? a.files.filter(f => typeof f === 'string').slice(0, 8) : [],
+          temperature: Math.max(0, Math.min(1.5, Number(a?.temperature ?? 0.7))),
+        })),
+      };
+
+      const modes = loadCustomModes();
+      modes.push(sanitized);
+      saveCustomModes(modes);
+      activeWorkshopMode = sanitized;
+      renderWorkshopModeList();
+      renderWorkshopEditor();
+      populateModeSelect();
+    } catch (err) {
+      alert(`Import failed: ${err.message}`);
+    }
+  }
+
+  function deleteActiveWorkshopMode() {
+    if (!activeWorkshopMode) return;
+    const filtered = loadCustomModes().filter(m => m.id !== activeWorkshopMode.id);
+    saveCustomModes(filtered);
+    activeWorkshopMode = filtered[0] ? JSON.parse(JSON.stringify(filtered[0])) : makeMode();
+    renderWorkshopModeList();
+    renderWorkshopEditor();
+    populateModeSelect();
+  }
+
+  workshopBtn.addEventListener('click', openWorkshop);
+  workshopClose.addEventListener('click', closeWorkshop);
+  workshopModal.addEventListener('click', (e) => { if (e.target === workshopModal) closeWorkshop(); });
+  workshopNewModeBtn.addEventListener('click', () => {
+    activeWorkshopMode = makeMode();
+    renderWorkshopModeList();
+    renderWorkshopEditor();
+  });
+  workshopAddAgentBtn.addEventListener('click', () => {
+    if (!activeWorkshopMode) return;
+    activeWorkshopMode.agents.push(makeAgent(`Agent ${activeWorkshopMode.agents.length + 1}`));
+    renderWorkshopEditor();
+  });
+  workshopSaveModeBtn.addEventListener('click', saveActiveWorkshopMode);
+  workshopCloneModeBtn.addEventListener('click', () => {
+    if (!activeWorkshopMode) return;
+    const cloned = cloneMode(activeWorkshopMode);
+    const modes = loadCustomModes();
+    modes.push(cloned);
+    saveCustomModes(modes);
+    activeWorkshopMode = cloned;
+    renderWorkshopModeList();
+    renderWorkshopEditor();
+    populateModeSelect();
+  });
+  workshopExportModeBtn.addEventListener('click', exportActiveWorkshopMode);
+  workshopImportModeBtn.addEventListener('click', importWorkshopMode);
+  workshopDeleteModeBtn.addEventListener('click', deleteActiveWorkshopMode);
+  workshopUseModeBtn.addEventListener('click', () => {
+    saveActiveWorkshopMode();
+    if (!activeWorkshopMode) return;
+    setMode(activeWorkshopMode.id);
+    populateModeSelect();
+    closeWorkshop();
+  });
+
+  /* ── Helpers ──────────────────────────────────────────────────── */
+  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  function setDisabled(s) { sendBtn.disabled = s; input.disabled = s; }
+
+  function setThinking(html) {
+    thinkBar.classList.remove('fade');
+    thinkBar.innerHTML = html;
+  }
+  function clearThinking() {
+    thinkBar.classList.add('fade');
+    setTimeout(() => { thinkBar.innerHTML = ''; thinkBar.classList.remove('fade'); }, 600);
+  }
+
+  /* Parse fenced code blocks robustly (``` or ~~~, varied language labels) */
+  function parseCodeBlocks(text) {
+    const segs = [];
+    const re = /(^|\n)(`{3,}|~{3,})\s*([^\n]*)\n([\s\S]*?)\n\2(?=\n|$)/g;
+    let last = 0;
+    let m;
+
+    while ((m = re.exec(text)) !== null) {
+      const blockStart = m.index + m[1].length;
+      if (blockStart > last) {
+        segs.push({ type: 'text', content: text.slice(last, blockStart) });
+      }
+
+      const rawLang = (m[3] || '').trim().toLowerCase();
+      const lang = rawLang.split(/[\s,{]/)[0] || 'text';
+      segs.push({ type: 'code', lang, content: m[4] });
+
+      last = blockStart + m[2].length + m[3].length + 1 + m[4].length + 1 + m[2].length;
+    }
+
+    if (last < text.length) segs.push({ type: 'text', content: text.slice(last) });
+
+    /* Fallback 1: full HTML document in plain text */
+    if (!segs.some(s => s.type === 'code')) {
+      const fullHtml = text.match(/((?:<!doctype html[^>]*>|<html[^>]*>)[\s\S]*?<\/html>)/i);
+      if (fullHtml) {
+        const idx = text.indexOf(fullHtml[1]);
+        const before = text.slice(0, idx).trim();
+        const after = text.slice(idx + fullHtml[1].length).trim();
+        const result = [];
+        if (before) result.push({ type: 'text', content: before });
+        result.push({ type: 'code', lang: 'html', content: fullHtml[1] });
+        if (after) result.push({ type: 'text', content: after });
+        return result;
+      }
+    }
+
+    /* Fallback 2: HTML fragment without <html> wrapper */
+    if (!segs.some(s => s.type === 'code')) {
+      const fragmentLike = /<(?:canvas|script|style|div|section|main|button|input|svg)\b/i.test(text)
+        && /<\/?[a-z][\s\S]*?>/i.test(text);
+      if (fragmentLike) {
+        return [{ type: 'code', lang: 'html', content: text.trim() }];
+      }
+    }
+
+    return segs;
+  }
+
+  function isRunnableHtml(lang, code) {
+    const lc = (lang || '').toLowerCase();
+    // Trust explicit HTML tags
+    if (lc === 'html' || lc === 'htm') return true;
+    if (lc === 'xml' || lc === 'xhtml') return true;
+    
+    // Fallback: look for document or fragment indicators
+    const snippet = code.slice(0, 500).toLowerCase();
+    return (
+      snippet.includes('<!doctype html') ||
+      snippet.includes('<html') ||
+      snippet.includes('<body') ||
+      snippet.includes('<canvas') ||
+      (snippet.includes('<script') && snippet.includes('<\/script>'))
+    );
+  }
+
+  /* ── Message rendering ────────────────────────────────────────── */
+  function addUserMsg(text, save = true) {
+    if (save) {
+      sessionMessages.push({ role: 'user', content: text });
+      saveCurrentChat();
+    }
+    const div = document.createElement('div');
+    div.className = 'msg user';
+    div.innerHTML = `<div class="role">You</div><div class="msg-text">${esc(text)}</div>`;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function addAssistantMsg(text, classification, traces, save = true) {
+    if (save) {
+      sessionMessages.push({ role: 'assistant', content: text, classification, traces });
+      saveCurrentChat();
+    }
+    const div = document.createElement('div');
+    div.className = 'msg assistant';
+
+    /* ── Render the clean reply (text + code blocks) ── */
+    const segments = parseCodeBlocks(text);
+    let bodyHtml = '';
+    let foundRunnable = null;
+
+    for (const seg of segments) {
+      if (seg.type === 'text') {
+        const trimmed = seg.content.trim();
+        if (trimmed) bodyHtml += `<div class="msg-text">${esc(trimmed)}</div>`;
+      } else {
+        const runnable = isRunnableHtml(seg.lang, seg.content);
+        if (runnable && !foundRunnable) foundRunnable = seg.content;
+        bodyHtml +=
+          `<div class="code-block">` +
+            `<div class="code-block-header">` +
+              `<span class="lang">${esc(seg.lang)}</span><div class="spacer"></div>` +
+              `<button class="save-btn" data-save data-lang="${esc(seg.lang)}">Save</button>` +
+              (runnable ? `<button class="run-btn" data-run>Run</button>` : '') +
+            `</div>` +
+            `<pre>${esc(seg.content)}</pre>` +
+          `</div>`;
+      }
+    }
+
+    div.innerHTML = `<div class="role">AI</div>${bodyHtml}`;
+
+    /* ── Attach run-button handlers ── */
+    div.querySelectorAll('[data-run]').forEach(btn => {
+      const code = btn.closest('.code-block').querySelector('pre').textContent;
+      btn.addEventListener('click', () => openSandbox(code));
+    });
+    div.querySelectorAll('[data-save]').forEach(btn => {
+      const code = btn.closest('.code-block').querySelector('pre').textContent;
+      const lang = btn.dataset.lang || 'text';
+      btn.addEventListener('click', () => saveProjectFromCode(code, lang));
+    });
+
+    /* ── Auto-open sandbox for HTML games ── */
+    if (foundRunnable) setTimeout(() => openSandbox(foundRunnable), 300);
+
+    /* ── Reasoning dropdown (collapsed by default) ── */
+    if (traces && traces.length) {
+      const totalMs = traces.reduce((s, t) => s + t.elapsed_ms, 0);
+      const details = document.createElement('details');
+      details.className = 'reasoning-dropdown';
+
+      details.innerHTML =
+        `<summary>` +
+          `<span class="r-icon">🧠</span> ` +
+          `${traces.length} agents · ` +
+          `<span class="r-time">${(totalMs / 1000).toFixed(1)}s</span>` +
+        `</summary>`;
+
+      const inner = document.createElement('div');
+      inner.className = 'reasoning-inner';
+
+      for (const t of traces) {
+        const agent = document.createElement('details');
+        agent.className = `agent-dropdown agent-${t.agent}`;
+        const prompt = (t.input_messages || [])
+          .map(m => `${(m.role || '').toUpperCase()}: ${m.content}`)
+          .join('\n\n');
+        agent.innerHTML =
+          `<summary>${esc(t.agent)} <span class="a-ms">${t.elapsed_ms}ms</span></summary>` +
+          `<pre><b>Prompt sent to model:</b>\n${esc(prompt || '(none)')}\n\n<b>Model response:</b>\n${esc(t.content)}</pre>`;
+        inner.appendChild(agent);
+      }
+
+      details.appendChild(inner);
+      div.appendChild(details);
+    }
+
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function showTyping() {
+    const div = document.createElement('div');
+    div.className = 'msg assistant typing-indicator'; div.id = 'typing';
+    div.innerHTML = '<span></span><span></span><span></span>';
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+  function removeTyping() { document.getElementById('typing')?.remove(); }
+
+  function startStageTicker() {
+    const mode = getMode();
+    const customMode = getCustomModeById(mode);
+    const customStages = customMode
+      ? ((customMode.agents || []).map(a => `${a.name || 'Agent'} is working…`))
+      : null;
+    const stages = mode === 'direct'
+      ? ['Direct mode…', 'Generating response…']
+      : mode === 'conversational'
+        ? ['Muse is shaping the vibe…', 'Guide is writing your reply…']
+        : customMode
+          ? (customStages && customStages.length ? customStages : ['Custom agent chain…'])
+        : [
+            'Classifying intent…',
+            'Introspecting (generating self-questions)…',
+            'Planning (Architect)…',
+            'Critiquing (Skeptic)…',
+            'Synthesizing answer…',
+            'Bug checking…',
+            'Fixing issues…',
+            'Checking history (Historian)…'
+          ];
+    if (!stages.length) {
+      setThinking('🧠 Thinking…');
+      stageTimer = null;
+      return;
+    }
+    let idx = 0;
+    const renderStage = () => {
+      setThinking('🧠 Thinking… <span class="step">' + stages[idx] + '</span>');
+    };
+    renderStage();
+    if (stages.length > 1) {
+      stageTimer = setInterval(() => {
+        if (idx < stages.length - 1) {
+          idx += 1;
+          renderStage();
+          if (idx === stages.length - 1) {
+            clearInterval(stageTimer);
+            stageTimer = null;
+          }
+        }
+      }, 2500);
+    } else {
+      stageTimer = null;
+    }
+  }
+
+  function stopStageTicker() {
+    if (stageTimer) clearInterval(stageTimer);
+    stageTimer = null;
+    clearThinking();
+  }
+
+  /* ── Memory viewer ───────────────────────────────────────────── */
+  async function openMemory(tab = 'manifesto') {
+    memoryModal.classList.add('open');
+    if (!memoryData) {
+      const res = await fetch('/api/memory');
+      memoryData = await res.json();
+    }
+    setMemoryTab(tab);
+  }
+
+  function setMemoryTab(tab) {
+    document.querySelectorAll('.memory-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    if (!memoryData) {
+      memoryContent.textContent = 'Loading…';
+      return;
+    }
+    if (tab === 'manifesto') {
+      memoryContent.textContent = memoryData.manifesto || '(empty)';
+    } else if (tab === 'heuristics') {
+      memoryContent.textContent = JSON.stringify(memoryData.heuristics || {}, null, 2);
+    } else if (tab === 'failures') {
+      memoryContent.textContent = JSON.stringify(memoryData.failures || {}, null, 2);
+    } else if (tab === 'historian_notes') {
+      memoryContent.textContent = JSON.stringify(memoryData.historian_notes || {}, null, 2);
+    } else if (tab === 'thought_journal') {
+      memoryContent.textContent = JSON.stringify(memoryData.thought_journal || {}, null, 2);
+    }
+  }
+
+  memoryBtn.addEventListener('click', () => openMemory('manifesto'));
+  memoryClose.addEventListener('click', () => memoryModal.classList.remove('open'));
+  memoryModal.addEventListener('click', (e) => {
+    if (e.target === memoryModal) memoryModal.classList.remove('open');
+  });
+  document.querySelectorAll('.memory-tab').forEach(btn => {
+    btn.addEventListener('click', () => setMemoryTab(btn.dataset.tab));
+  });
+
+  /* ── Send ──────────────────────────────────────────────────────── */
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    addUserMsg(msg);
+    input.value = '';
+    setDisabled(true);
+    showTyping();
+    startStageTicker();
+
+    try {
+      const activeMode = getMode();
+      const customMode = getCustomModeById(activeMode);
+      const history = (sessionMessages || []).map(m => ({
+        role: m.role,
+        content: m.content,
+      }));
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message: msg, 
+          history,
+          model: modelSelect?.value,
+          mode: customMode ? 'custom' : activeMode,
+          mode_config: customMode || null,
+          include_trace_prompts: getIncludeTracePrompts(),
+          api_key: getApiKey(),
+          hf_api_key: getHfApiKey()
+        }),
+      });
+      const data = await res.json();
+      removeTyping();
+
+      if (res.status === 401) {
+        // API Key missing or invalid
+        openSettings();
+        addAssistantMsg(`⚠️ **Auth Error:** ${data.error}`, null, []);
+      } else if (data.error && !data.reply) {
+        addAssistantMsg(`⚠️ Error: ${data.error}`, null, data.traces);
+      } else {
+        addAssistantMsg(data.reply, data.classification, data.traces);
+      }
+      stopStageTicker();
+    } catch (err) {
+      removeTyping();
+      addAssistantMsg(`⚠️ Network error: ${err.message}`, null, []);
+      stopStageTicker();
+    }
+    setDisabled(false);
+    input.focus();
+  });
+
+  /* ── Reset ─────────────────────────────────────────────────────── */
+  resetBtn.addEventListener('click', async () => {
+    // Start a fresh chat instead of just clearing
+    startNewChat();
+    
+    await fetch('/api/reset', { method: 'POST' });
+    chatBox.innerHTML = '';
+    stopStageTicker();
+    closeSandbox();
+    lastHtmlCode = '';
+    input.focus();
+  });
+</script>
+</body>
+</html>

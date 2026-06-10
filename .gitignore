@@ -1,0 +1,14 @@
+node_modules/
+Reasoning-wrapper-master/venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+.env
+.venv
+*.log
+Reasoning-wrapper-master.zip
+.DS_Store

@@ -1,0 +1,41 @@
+<div id="agent-chat-modal">
+    <div class="modal-card" style="width:100vw;height:100vh;max-width:none;max-height:none;border-radius:0;border:none;">
+      <div class="modal-header" style="flex-wrap:wrap; gap: 8px;">
+        <button id="agent-chat-back" class="hdr-btn">← Back</button>
+        <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+            <div style="display:flex; align-items:baseline; gap:8px;">
+                <h3 id="agent-chat-title" style="margin:0;">Agent Chat</h3>
+                <span id="agent-chat-path" style="font-size:0.68rem;color:var(--text-muted);"></span>
+            </div>
+            <div id="agent-chat-actions" style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+              <select id="agent-chat-model" class="hdr-btn" style="padding:4px;font-size:0.7rem;"></select>
+              <select id="agent-chat-mode" class="hdr-btn" style="padding:4px;font-size:0.7rem;">
+                <option value="reasoning">Reasoning</option>
+                <option value="reasoning_fast">Fast Reasoning</option>
+                <option value="swarm">Swarm (3-stage)</option>
+                <option value="conversational">Conversational</option>
+                <option value="direct">Direct</option>
+              </select>
+              <button id="agent-web-auto-toggle" class="hdr-btn" type="button" title="Automatically search the web when needed" aria-label="Toggle automatic web search">🌐</button>
+              <button id="agent-chat-context-toggle" class="hdr-btn" type="button" title="Show context panel" aria-label="Show context panel">Show Context</button>
+            </div>
+        </div>
+        <button id="agent-chat-close" class="hdr-btn modal-close">✕</button>
+      </div>
+      <div class="modal-body agent-chat-split">
+        <div style="display:flex;flex-direction:column;gap:10px;min-height:0;">
+          <div id="agent-chat-messages" style="flex:1;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:20px;background:var(--bg);display:flex;flex-direction:column;gap:12px;"></div>
+          <div style="display:flex;gap:8px;">
+            <textarea id="agent-chat-input" placeholder="Command this agent..." rows="2" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;resize:none;min-height:50px;"></textarea>
+            <button id="agent-chat-send" class="hdr-btn">Send</button>
+          </div>
+        </div>
+        <div class="agent-chat-context-pane">
+          <div style="display:flex;justify-content:flex-end;padding:8px 8px 0;">
+            <button id="agent-chat-context-close" class="hdr-btn" type="button">Hide Context</button>
+          </div>
+          <div id="agent-chat-context"></div>
+        </div>
+      </div>
+    </div>
+  </div>

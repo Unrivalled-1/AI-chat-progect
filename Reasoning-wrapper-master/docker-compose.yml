@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./reasoning/.memory:/app/reasoning/.memory
+    env_file:
+      - .env
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-default-secret-key}
+    restart: unless-stopped

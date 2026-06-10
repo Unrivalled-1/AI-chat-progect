@@ -1,0 +1,18 @@
+<div id="project-memory-modal">
+    <div class="modal-card" style="width:min(960px,95vw);height:min(84vh,840px)">
+      <div class="modal-header">
+        <h3 id="project-memory-title">Project Memory</h3>
+        <button id="project-memory-close" class="hdr-btn modal-close">✕</button>
+      </div>
+      <div class="modal-body" style="display:grid;grid-template-columns:220px 1fr;gap:10px;overflow:auto;">
+        <div id="project-memory-list" style="display:flex;flex-direction:column;gap:6px;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--bg);"></div>
+        <div style="display:flex;flex-direction:column;gap:8px;min-height:0;">
+          <input id="project-memory-file-name" type="text" placeholder="File name" style="padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);" />
+          <textarea id="project-memory-editor" style="flex:1;min-height:260px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);"></textarea>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button id="project-memory-save" class="hdr-btn">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

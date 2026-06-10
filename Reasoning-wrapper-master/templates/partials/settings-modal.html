@@ -1,0 +1,195 @@
+<div id="settings-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>User Settings</h3>
+      <button id="settings-close" class="hdr-btn modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom: 20px;">
+        <h4 style="font-size: 0.8rem; margin-bottom: 10px; color: var(--text-muted); letter-spacing: 0.05em;">SELECT
+          VISUAL STYLE</h4>
+        <div class="style-grid" style="margin-bottom: 20px;">
+          <div class="style-opt active" data-style="glass">
+            <div class="preview"
+              style="background: rgba(255,255,255,0.08); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; height: 38px; margin-bottom: 8px;">
+            </div>
+            <div style="font-size:0.75rem; font-weight: 500;">Glassmorphism</div>
+          </div>
+          <div class="style-opt" data-style="neo">
+            <div class="preview"
+              style="background: #e0e5dd; box-shadow: 3px 3px 6px rgba(0,0,0,0.15), -3px -3px 6px rgba(255,255,255,0.8); border: none; border-radius: 6px; height: 38px; margin-bottom: 8px;">
+            </div>
+            <div style="font-size:0.75rem; font-weight: 500;">Neomorphism</div>
+          </div>
+          <div class="style-opt" data-style="clay">
+            <div class="preview"
+              style="background: #ecd2d4; box-shadow: inset 2px 2px 4px rgba(255, 255, 255, 0.8), inset -2px -2px 4px rgba(180, 130, 134, 0.5); border: none; border-radius: 6px; height: 38px; margin-bottom: 8px;">
+            </div>
+            <div style="font-size:0.75rem; font-weight: 500;">Claymorphism</div>
+          </div>
+          <div class="style-opt" data-style="minimal">
+            <div class="preview"
+              style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; height: 38px; margin-bottom: 8px;">
+            </div>
+            <div style="font-size:0.75rem; font-weight: 500;">Minimal</div>
+          </div>
+        </div>
+
+        <h4 style="font-size: 0.8rem; margin-bottom: 10px; color: var(--text-muted); letter-spacing: 0.05em;">SELECT
+          COLOR SCHEME</h4>
+        <div class="color-grid">
+          <div class="color-opt active" data-color="midnight-red">
+            <div class="preview" style="background: #0d0d1a;">
+              <div style="width:12px; background:#e94560; border-radius: 3px;"></div>
+            </div>
+            <div style="font-size:0.75rem; font-weight: 500;">Midnight Red</div>
+          </div>
+          <div class="color-opt" data-color="deep-purple">
+            <div class="preview" style="background: #020617;">
+              <div style="width:12px; background:#8b5cf6; border-radius: 3px;"></div>
+            </div>
+            <div style="font-size:0.75rem; font-weight: 500;">Deep Purple</div>
+          </div>
+          <div class="color-opt" data-color="clean-light">
+            <div class="preview" style="background: #f5f5f7; border: 1px solid rgba(0,0,0,0.06);">
+              <div style="width:12px; background:#6d28d9; border-radius: 3px;"></div>
+            </div>
+            <div style="font-size:0.75rem; font-weight: 500;">Clean Light</div>
+          </div>
+          <div class="color-opt" data-color="cyberpunk">
+            <div class="preview" style="background: #000000; border: 1px solid rgba(0,255,65,0.15);">
+              <div style="width:12px; background:#00ff41; border-radius: 3px;"></div>
+            </div>
+            <div style="font-size:0.75rem; font-weight: 500;">Cyberpunk</div>
+          </div>
+          <div class="color-opt" data-color="forest-sage">
+            <div class="preview" style="background: #e0e5dd; border: 1px solid #bfc4bc;">
+              <div style="width:12px; background:#52795c; border-radius: 3px;"></div>
+            </div>
+            <div style="font-size:0.75rem; font-weight: 500;">Forest Sage</div>
+          </div>
+          <div class="color-opt" data-color="clay-crimson">
+            <div class="preview" style="background: #c96567;">
+              <div style="width:12px; background:#801c1e; border-radius: 3px;"></div>
+            </div>
+            <div style="font-size:0.75rem; font-weight: 500;">Clay Crimson</div>
+          </div>
+          <div class="color-opt" data-color="sunset-neon">
+            <div class="preview" style="background: #161028;">
+              <div style="width:12px; background:#f97316; border-radius: 3px;"></div>
+            </div>
+            <div style="font-size:0.75rem; font-weight: 500;">Sunset Neon</div>
+          </div>
+          <div class="color-opt" data-color="aurora-glass">
+            <div class="preview" style="background: #06101a;">
+              <div style="width:12px; background:#22d3ee; border-radius: 3px;"></div>
+            </div>
+            <div style="font-size:0.75rem; font-weight: 500;">Aurora Glass</div>
+          </div>
+          <div class="color-opt" data-color="crimson-black">
+            <div class="preview" style="background: #060407;">
+              <div style="width:12px; background:#f43f5e; border-radius: 3px;"></div>
+            </div>
+            <div style="font-size:0.75rem; font-weight: 500;">Crimson Black</div>
+          </div>
+        </div>
+        <h4 style="font-size: 0.8rem; margin: 20px 0 10px 0; color: var(--text-muted);">API CONFIGURATION</h4>
+        <div style="background: var(--code-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+          <label style="font-size: 0.75rem; display: block; margin-bottom: 6px; color: var(--text-muted);">GEMINI API
+            KEY (Saved in Browser)</label>
+          <input type="password" id="api-key-input"
+            style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem;"
+            placeholder="AIzaSy..." />
+          <div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted);">Required for Gemini models. Stored
+            locally in browser. Models with available keys are marked with ✓ in the model dropdown.</div>
+
+          <label style="font-size: 0.75rem; display: block; margin: 14px 0 6px 0; color: var(--text-muted);">HUGGING
+            FACE API KEY (Saved in Browser)</label>
+          <input type="password" id="hf-api-key-input"
+            style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem;"
+            placeholder="hf_..." />
+          <div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted);">Required for Hugging Face models.
+            Stored locally in browser. Relative credit multipliers are shown as xN per model.</div>
+
+          <label style="font-size: 0.75rem; display: block; margin: 14px 0 6px 0; color: var(--text-muted);">HUGGING
+            FACE PROVIDER ROUTING</label>
+          <select id="hf-router-input"
+            style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem;">
+            <option value="">Default Auto-Router</option>
+            <option value=":hf-inference">HF Internal Inference</option>
+            <option value=":together">Together AI</option>
+            <option value=":fireworks">Fireworks AI</option>
+            <option value=":hyperbolic">Hyperbolic</option>
+            <option value=":novita">Novita AI</option>
+            <option value=":sambanova">SambaNova</option>
+          </select>
+          <div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted);">Fixes issues with fine-grained API
+            tokens by enforcing a specific router. Use if auto-router fails.</div>
+
+          <label style="font-size: 0.75rem; display: block; margin: 14px 0 6px 0; color: var(--text-muted);">OPENAI API
+            KEY (Saved in Browser)</label>
+          <input type="password" id="openai-api-key-input"
+            style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem;"
+            placeholder="sk-proj-..." />
+
+          <label style="font-size: 0.75rem; display: block; margin: 14px 0 6px 0; color: var(--text-muted);">ANTHROPIC
+            API KEY (Saved in Browser)</label>
+          <input type="password" id="anthropic-api-key-input"
+            style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem;"
+            placeholder="sk-ant-..." />
+
+          <div style="margin-top: 14px; padding: 10px; border: 1px dashed var(--border); border-radius: 8px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--text);">
+              <input type="checkbox" id="trace-prompts-toggle" />
+              Show internal prompts in reasoning traces
+            </label>
+            <div style="margin-top: 6px; font-size: 0.7rem; color: var(--text-muted);">Off by default for privacy. When
+              enabled, full prompts sent to models are shown in the trace dropdown.</div>
+          </div>
+
+          <div style="margin-top: 14px; padding: 10px; border: 1px dashed var(--border); border-radius: 8px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--text);">
+              <input type="checkbox" id="auto-skip-toggle" />
+              Enable Auto-Skip for Routing Agents
+            </label>
+            <div style="margin-top: 6px; font-size: 0.7rem; color: var(--text-muted);">When enabled, Planner and Manager agents will be explicitly instructed to skip any unused downstream subagents to save time and tokens.</div>
+          </div>
+
+          <div style="margin-top: 14px; padding: 10px; border: 1px dashed var(--border); border-radius: 8px;">
+            <label style="font-size:0.78rem;color:var(--text);display:block;margin-bottom:6px;">UI Device Mode</label>
+            <select id="viewport-mode-select" class="hdr-btn" style="width:100%;">
+              <option value="auto">Auto (detect by screen size)</option>
+              <option value="mobile">Force Mobile (for testing)</option>
+              <option value="desktop">Force Desktop</option>
+            </select>
+            <div style="margin-top: 6px; font-size: 0.7rem; color: var(--text-muted);">Mobile mode optimizes Mission
+              tiles for phone layout (2 tiles per row).</div>
+          </div>
+          
+          <h4 style="font-size: 0.8rem; margin: 20px 0 10px 0; color: var(--text-muted); letter-spacing: 0.05em;">DEFAULT BEHAVIORS</h4>
+          
+          <label style="font-size: 0.75rem; display: block; margin: 14px 0 6px 0; color: var(--text-muted);">DEFAULT MODEL</label>
+          <select id="settings-default-model" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem;">
+            <!-- Options populated by JS -->
+          </select>
+          <div style="margin-top: 6px; font-size: 0.7rem; color: var(--text-muted);">Used for new chats and the floating widget.</div>
+
+          <label style="font-size: 0.75rem; display: block; margin: 14px 0 6px 0; color: var(--text-muted);">FLOATING WIDGET BEHAVIOR</label>
+          <select id="widget-behavior-select" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem;">
+            <option value="new_chat">Open a New Chat (Saved to History)</option>
+            <option value="temp_chat">Open a Temporary Chat (Not Saved)</option>
+            <option value="specific_agent">Automatically use a Specific Agent</option>
+          </select>
+          
+          <div id="widget-agent-container" style="display: none; margin-top: 10px;">
+            <label style="font-size: 0.75rem; display: block; margin-bottom: 6px; color: var(--text-muted);">SPECIFIC AGENT</label>
+            <select id="widget-agent-select" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem;">
+              <!-- Options populated by JS -->
+            </select>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

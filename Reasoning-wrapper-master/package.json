@@ -1,0 +1,32 @@
+{
+  "name": "ai-chat-progect",
+  "version": "1.0.0",
+  "description": "A multi-agent AI chat application that routes user messages through a sophisticated reasoning pipeline, featuring multiple LLM backends (Gemini & Hugging Face), real-time WebSocket chat, user authentication, and a visual agent workshop.",
+  "main": "script.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "electron-start": "electron electron-main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Unrivalled-1/Reasoning-wrapper.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Unrivalled-1/Reasoning-wrapper/issues"
+  },
+  "homepage": "https://github.com/Unrivalled-1/Reasoning-wrapper#readme",
+  "dependencies": {
+    "jsdom": "^29.0.1",
+    "playwright": "^1.59.1"
+  },
+  "devDependencies": {
+    "electron": "^42.3.3"
+  }
+}

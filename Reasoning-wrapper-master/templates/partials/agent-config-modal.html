@@ -1,0 +1,43 @@
+<div id="agent-config-modal">
+    <div class="modal-card" style="width:min(860px,95vw);height:min(86vh,860px)">
+      <div class="modal-header">
+        <h3 id="agent-config-title">Configure Agent</h3>
+        <button id="agent-config-close" class="hdr-btn modal-close">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:10px;overflow:auto;">
+        <label style="font-size:0.72rem;color:var(--text-muted);">Agent Name</label>
+        <input id="agent-config-name" type="text" placeholder="Research Agent" style="padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);" />
+
+        <label style="font-size:0.72rem;color:var(--text-muted);">Project (optional)</label>
+        <select id="agent-config-project" class="hdr-btn"></select>
+
+        <label style="font-size:0.72rem;color:var(--text-muted);">Mode</label>
+        <select id="agent-config-mode" class="hdr-btn">
+          <option value="reasoning">Reasoning</option>
+          <option value="reasoning_fast">Fast Reasoning</option>
+          <option value="swarm">Swarm (3-stage)</option>
+          <option value="conversational">Conversational</option>
+          <option value="direct">Direct</option>
+        </select>
+
+        <label style="font-size:0.72rem;color:var(--text-muted);">Role / Instructions</label>
+        <textarea id="agent-config-instructions" placeholder="What this agent does, constraints, style..." style="min-height:130px;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);"></textarea>
+
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.75rem;cursor:pointer;">
+          <input type="checkbox" id="agent-config-web-search" />
+          Enable Agentic Web Search (Agent dynamically fetches pages)
+        </label>
+
+        <label style="font-size:0.72rem;color:var(--text-muted);">Sources (one per line)</label>
+        <textarea id="agent-config-sources" placeholder="https://example.com\nhttps://docs.example.com" style="min-height:110px;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);"></textarea>
+
+        <label style="font-size:0.72rem;color:var(--text-muted);">Memory Notes (editable from chat)</label>
+        <textarea id="agent-config-memory" placeholder="Long-term notes for this agent..." style="min-height:120px;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);"></textarea>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+          <button id="agent-config-delete" class="hdr-btn" style="margin-right:auto;">Delete Agent</button>
+          <button id="agent-config-save" class="hdr-btn">Save Agent</button>
+        </div>
+      </div>
+    </div>
+  </div>

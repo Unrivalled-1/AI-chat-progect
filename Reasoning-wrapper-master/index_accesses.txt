@@ -1,0 +1,136 @@
+124:USER_MODELS: list[dict] = []
+147:    return ids[0] if ids else DEFAULT_MODEL
+278:    ordered = sorted(_MISSION_RUNS.items(), key=lambda x: float(x[1].get("started_at", 0.0)))
+310:            "approvals": [],
+311:            "reroutes": [],
+312:            "events": [],
+317:            "tags": [],
+318:            "traces": [],
+319:            "checkpoints": [],
+320:            "memory_influence": [],
+336:    traces = run_state["result"].get("traces", [])
+351:        "input_messages": input_messages or []
+367:    run_state.setdefault("controls", {}).setdefault("events", []).append({
+381:    a_traces = a_res.get("traces", [])
+382:    b_traces = b_res.get("traces", [])
+392:            "checkpoint_count": len(a_res.get("checkpoints", [])),
+393:            "tags": a_res.get("tags", []),
+399:            "checkpoint_count": len(b_res.get("checkpoints", [])),
+400:            "tags": b_res.get("tags", []),
+424:    sources = action.get("sources") if isinstance(action.get("sources"), list) else []
+476:    tags = []
+477:    traces = []
+478:    checkpoints = []
+479:    memory_influence = []
+559:        due_ids = []
+577:    forwarded = (request.headers.get("X-Forwarded-For") or "").split(",")[0].strip()
+584:    bucket = _rate_buckets.get(ip, [])
+609:    out = re.sub(patterns[0], "[REDACTED_GEMINI_KEY]", out)
+610:    out = re.sub(patterns[1], "[REDACTED_HF_TOKEN]", out)
+611:    out = re.sub(patterns[2], "[REDACTED_OPENAI_KEY]", out)
+612:    out = re.sub(patterns[3], r"\1[REDACTED]", out)
+613:    out = re.sub(patterns[4], r"\1[REDACTED]", out)
+614:    out = re.sub(patterns[5], "[REDACTED_PRIVATE_KEY]", out)
+648:        ip_txt = info[4][0]
+719:        parts: list[str] = []
+800:        items = []
+802:    out = []
+894:        return []
+907:        results = []
+909:            results = list(ddgs.text(sys.argv[1], max_results={max_results}))
+914:                results = list(ddgs.news(sys.argv[1], max_results={max_results}))
+917:        out = []
+926:    print(json.dumps([]))
+932:            results = []
+940:        return []
+946:    chunks: list[str] = []
+947:    sources: list[dict] = []
+1004:                        delta = chunk.choices[0].delta.content or ""
+1022:                    return (response.choices[0].message.content or "").strip()
+1054:        chat_messages = []
+1071:        input_len = inputs["input_ids"].shape[1]
+1079:        new_tokens = outputs[0][input_len:]
+1103:        parts = []
+1109:                img_str = image_data.split(",")[1] if "," in image_data else image_data
+1149:        user_msg_content = []
+1198:        system_parts = []
+1199:        contents = []
+1219:            parts = []
+1226:                    img_str = image_data.split(",")[1] if "," in image_data else image_data
+1257:    hf_messages = []
+1273:            content = []
+1322:        history = []
+1324:    normalized = []
+1342:    if not normalized or normalized[-1].get("role") != "user" or normalized[-1].get("content") != user_msg:
+1349:    lines = []
+1372:    files = []
+1417:    key_lines = []
+1450:    history = history or []
+1473:    history_text = _history_to_text(history or [])
+1513:    traces = []
+1519:    if history and len(history) > 0 and history[-1].get("role") == "user":
+1521:        if "[WEB_CONTEXT]" in history[-1]["content"]:
+1522:            muse_user_msg = history[-1]["content"]
+1582:    agents = (mode_config or {}).get("agents", [])
+1584:        return "Please configure at least one agent in Workshop.", [], selected_model
+1591:    traces: list[dict] = []
+1592:    prior_outputs: list[str] = []
+1594:    history_text = _history_to_text(history or [], max_chars=5000)
+1612:        files = agent_cfg.get("files") or []
+1614:            files = []
+1617:        file_sections = []
+1624:        inputs = agent_cfg.get("inputs") or []
+1640:                "web_sources": [],
+1641:                "input_messages": [],
+1648:        inputs = agent_cfg.get("inputs") or []
+1650:            selected_outputs = []
+1660:        agent_web_sources = []
+1689:        abilities = agent_cfg.get("abilities", [])
+1790:        return {"name": "Custom Mode", "agents": []}
+1794:        agents = []
+1796:    sanitized_agents = []
+1800:        files = a.get("files") if isinstance(a.get("files"), list) else []
+1807:            inputs = []
+1808:        sanitized_inputs = []
+1817:            abilities = []
+1838:    public = []
+1839:    for t in traces or []:
+1843:            "input_messages": (t.get("input_messages", []) if isinstance(t, dict) else getattr(t, "input_messages", [])) if include_prompts else [],
+1850:            "memory_influence": t.get("memory_influence", []) if isinstance(t, dict) else getattr(t, "memory_influence", []),
+1919:    return jsonify({"status": "added", "model": USER_MODELS[-1]})
+2025:        history_text = _history_to_text(history[-5:] if history else [])
+2039:        reply = str(resp.choices[0].message.content).strip()
+2136:    web_context, web_sources = "", []
+2142:            chunks = []
+2180:    if history and history[-1].get("role") == "user":
+2181:        history[-1]["content"] = augmented_user_msg
+2209:                "tags": [],
+2215:                    "input_messages": []
+2217:                "checkpoints": [],
+2218:                "memory_influence": [],
+2228:                "tags": [],
+2234:                    "input_messages": []
+2260:                "checkpoints": [],
+2261:                "memory_influence": [],
+2300:                "checkpoints": [],
+2301:                "memory_influence": [],
+2331:            if history and history[-1].get("role") == "user":
+2332:                history[-1]["content"] = augmented_user_msg
+2346:                input_messages=input_messages if input_messages else []
+2375:            "input_messages": t.input_messages if include_prompts else [],
+2382:            "memory_influence": getattr(t, "memory_influence", []),
+2427:        "last_heuristic_ids": [],
+2428:        "last_tags": [],
+2432:        "last_generated_questions": [],
+2473:    run_state.setdefault("controls", {}).setdefault("approvals", []).append(item)
+2493:    run_state.setdefault("controls", {}).setdefault("reroutes", []).append(item)
+2669:        source_list = []
+2821:    out = []
+2835:    uids = data[0].split()
+2839:    messages = []
+2842:        raw = msg_data[0][1] if msg_data and msg_data[0] else b""
+2860:    raw = msg_data[0][1] if msg_data and msg_data[0] else b""
+3081:        return jsonify({"sessions": []})
+3101:        return jsonify({"messages": []})
+3221:    files = data.get("files", [])
+3380:            emit("chat_response", {"reply": reply, "model": resolved_model, "mode": "direct", "traces": []})

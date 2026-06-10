@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Assistant</title>
+  <style>
+    :root {
+      --bg: rgba(13, 17, 23, 0.85);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --primary: #8b5cf6;
+      --primary-hover: #7c3aed;
+      --msg-user: rgba(255, 255, 255, 0.05);
+      --msg-assistant: rgba(139, 92, 246, 0.15);
+      --dropdown-bg: rgba(15, 23, 42, 0.95);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: transparent;
+      color: var(--text);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      border-radius: 16px;
+    }
+
+    .app-container {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Custom Titlebar for Dragging */
+    .titlebar {
+      height: 38px;
+      -webkit-app-region: drag;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+    
+    .hamburger-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      -webkit-app-region: no-drag;
+      margin-right: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 4px;
+    }
+    
+    .hamburger-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--text);
+    }
+
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 38px;
+      left: 10px;
+      background: var(--dropdown-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 220px;
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 100;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      flex-direction: column;
+      padding: 8px 0;
+    }
+    
+    .dropdown-item {
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      color: var(--text);
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      flex-direction: column;
+    }
+    .dropdown-item:last-child { border-bottom: none; }
+    .dropdown-item:hover { background: rgba(255,255,255,0.08); }
+    
+    .agent-submenu {
+      display: none;
+      padding-top: 8px;
+      margin-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      gap: 6px;
+    }
+    .dropdown-item.expanded .agent-submenu { display: flex; flex-direction: column; }
+    
+    .submenu-btn {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid transparent;
+      color: var(--text);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      text-align: left;
+    }
+    .submenu-btn:hover { background: rgba(255,255,255,0.2); }
+    .submenu-btn.primary { background: var(--primary); }
+    .submenu-btn.primary:hover { background: var(--primary-hover); }
+
+    .mode-select {
+      background: #1e293b;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #f8fafc;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      outline: none;
+      cursor: pointer;
+    }
+    
+    .mode-select option {
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    .selectors-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .titlebar-controls {
+      display: flex;
+      gap: 8px;
+      -webkit-app-region: no-drag;
+    }
+
+    .control-btn {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: none;
+      background: #475569;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .control-btn.close:hover { background: #ef4444; }
+    .control-btn.min:hover { background: #eab308; }
+    .control-btn.open:hover { background: #3b82f6; }
+
+    /* Chat Area */
+    .model-slider-container {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      margin-left: 8px;
+    }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.55rem;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+      padding: 0 4px;
+    }
+    .model-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.1);
+      outline: none;
+    }
+    .model-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .model-slider::-webkit-slider-thumb:hover { background: var(--primary-hover); }
+
+    .chat-area {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chat-area::-webkit-scrollbar { width: 6px; }
+    .chat-area::-webkit-scrollbar-track { background: transparent; }
+    .chat-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+    .msg {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      animation: msg-in 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      opacity: 0;
+      transform: translateY(10px);
+      word-wrap: break-word;
+    }
+    .msg p { margin-bottom: 8px; }
+    .msg p:last-child { margin-bottom: 0; }
+    .msg code { background: rgba(0,0,0,0.3); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+    .msg pre { background: rgba(0,0,0,0.5); padding: 8px; border-radius: 8px; overflow-x: auto; margin: 8px 0; }
+    .msg pre code { background: none; padding: 0; }
+    .msg strong { font-weight: bold; color: #fff; }
+
+    @keyframes msg-in { to { opacity: 1; transform: translateY(0); } }
+
+    .msg.user {
+      align-self: flex-end;
+      background: var(--msg-user);
+      border: 1px solid var(--border);
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg.assistant {
+      align-self: flex-start;
+      background: var(--msg-assistant);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-bottom-left-radius: 4px;
+      word-wrap: break-word;
+    }
+    
+    .msg-thinking {
+      align-self: flex-start;
+      font-size: 0.8rem;
+      color: var(--primary);
+      opacity: 0.7;
+      animation: pulse 1s infinite alternate;
+    }
+    @keyframes pulse { from { opacity: 0.4; } to { opacity: 0.8; } }
+
+    /* Input Area */
+    .input-area {
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.2);
+      border-top: 1px solid var(--border);
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 6px 16px;
+      transition: border-color 0.3s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      font-family: inherit;
+    }
+
+    input[type="text"]::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+    button.send {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    button.send:hover { background: var(--primary-hover); transform: scale(1.05); }
+    
+    .toast {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    .image-preview-container {
+      display: none;
+      padding: 8px 16px;
+      background: rgba(0,0,0,0.2);
+      border-top: 1px solid var(--border);
+    }
+    .image-preview {
+      max-height: 100px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .capture-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+      transition: color 0.2s;
+    }
+    .capture-btn:hover { color: var(--primary); }
+    .remove-image-btn {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <div class="titlebar">
+      <button class="hamburger-btn" id="hamburger-btn" title="Agent Menu">≡</button>
+      <span>AI ASSISTANT</span>
+      <div class="titlebar-controls" style="margin-left: auto;">
+        <button class="control-btn open" id="open-btn" title="Open Full App"></button>
+        <button class="control-btn min" id="min-btn" title="Minimize"></button>
+        <button class="control-btn close" id="close-btn" title="Close"></button>
+      </div>
+    </div>
+    
+    <div class="selectors-bar">
+      <select class="mode-select" id="mode-select">
+        <option value="direct">Direct Reasoning</option>
+        <option value="conversational">Conversational</option>
+        <option value="project_manager">Project Manager</option>
+        <option value="custom">Specific Agent Mode</option>
+      </select>
+      
+      <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
+        <select class="mode-select" id="widget-model-select" style="flex: 1; max-width: 140px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; padding-right: 20px;">
+          <!-- Populated via JS -->
+        </select>
+        
+        <div class="model-slider-container" style="width: 100px; margin-left: 8px;">
+          <div class="slider-labels" style="display:flex; justify-content:space-between; font-size:0.55rem; color:var(--text-muted); margin-bottom:4px; padding:0 2px;">
+            <span>Cheapest</span>
+            <span>Fastest</span>
+          </div>
+          <input type="range" min="1" max="2" step="1" value="1" class="model-slider" id="hf-routing-slider">
+        </div>
+      </div>
+    </div>
+    
+    <div class="dropdown-menu" id="dropdown-menu">
+      <div style="padding: 4px 12px; font-size: 0.7rem; color: var(--primary); font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 4px;">YOUR AGENTS</div>
+      <div id="agent-list-container">
+        <div style="padding: 8px 12px; font-size: 0.75rem; color: var(--text-muted);">No agents found.</div>
+      </div>
+    </div>
+    
+    <div class="chat-area" id="chat-area">
+      <div class="msg assistant" id="welcome-msg">Hello! I am your floating AI assistant.</div>
+    </div>
+    
+    <div class="image-preview-container" id="image-preview-container">
+      <div style="position: relative; display: inline-block;">
+        <img id="image-preview" class="image-preview" src="" alt="Screenshot" />
+        <button class="remove-image-btn" id="remove-image-btn">×</button>
+      </div>
+    </div>
+    
+    <div class="input-area">
+      <form id="chat-form" class="input-wrapper">
+        <button type="button" class="capture-btn" id="capture-btn" title="Circle to Query">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        </button>
+        <input type="text" id="user-input" placeholder="Ask anything..." autocomplete="off">
+        <button type="submit" class="send">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </form>
+    </div>
+    <div class="toast" id="toast">Appended successfully!</div>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+    
+    let chatHistory = [];
+    let widgetSessionId = null;
+    
+    const KEY_WIDGET_BEHAVIOR = 'vibe_widget_behavior';
+    const KEY_WIDGET_AGENT = 'vibe_widget_agent';
+    const KEY_STORE = 'vibe_chat_store_v1';
+    const KEY_MISSION_AGENTS = 'vibe_mission_agents_v1';
+    const KEY_MODEL = 'vibe_selected_model';
+    
+    let behavior = localStorage.getItem(KEY_WIDGET_BEHAVIOR) || 'new_chat';
+    let defaultAgent = localStorage.getItem(KEY_WIDGET_AGENT) || '';
+    let currentAgentConfig = null;
+    
+    const modeSelect = document.getElementById('mode-select');
+    const chatArea = document.getElementById('chat-area');
+    const welcomeMsg = document.getElementById('welcome-msg');
+    
+    // Initialize state
+    if (behavior === 'specific_agent' && defaultAgent) {
+      modeSelect.value = 'custom';
+      welcomeMsg.textContent = "Hello! I am using your designated agent. How can I help?";
+      const allAgents = JSON.parse(localStorage.getItem(KEY_MISSION_AGENTS) || '[]');
+      currentAgentConfig = allAgents.find(a => a.id === defaultAgent || a.name === defaultAgent);
+    } else {
+      if (behavior === 'temp_chat') welcomeMsg.textContent += " (Temporary Chat)";
+    }
+    
+    const modelSelect = document.getElementById('widget-model-select');
+    fetch('/api/models').then(r => r.json()).then(models => {
+      if (!localStorage.getItem('vibe_v2_deepseek_default')) {
+        localStorage.setItem(KEY_MODEL, 'deepseek-ai/DeepSeek-V4-Pro:cheapest');
+        localStorage.setItem('vibe_v2_deepseek_default', '1');
+      }
+      let saved = localStorage.getItem(KEY_MODEL);
+      if (saved) saved = saved.split(':')[0]; // Strip suffix for model select base ID
+      const defaultModel = saved || 'deepseek-ai/DeepSeek-V4-Pro';
+      models.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = m.name;
+        if (m.id === defaultModel) opt.selected = true;
+        modelSelect.appendChild(opt);
+      });
+    }).catch(e => console.error(e));
+
+    modelSelect.addEventListener('change', (e) => {
+      localStorage.setItem(KEY_MODEL, e.target.value);
+    });
+
+    const routingSlider = document.getElementById('hf-routing-slider');
+    const savedRoutingVal = localStorage.getItem('vibe_hf_routing_val') || '1';
+    routingSlider.value = savedRoutingVal;
+    routingSlider.addEventListener('input', (e) => {
+      localStorage.setItem('vibe_hf_routing_val', e.target.value);
+    });
+
+    document.getElementById('close-btn').addEventListener('click', () => window.close());
+    document.getElementById('min-btn').addEventListener('click', () => ipcRenderer.send('full-app-minimize'));
+    document.getElementById('open-btn').addEventListener('click', () => ipcRenderer.send('open-main-app'));
+    
+    const menuBtn = document.getElementById('hamburger-btn');
+    const dropdown = document.getElementById('dropdown-menu');
+    const agentContainer = document.getElementById('agent-list-container');
+    
+    menuBtn.addEventListener('click', () => {
+      const isShowing = dropdown.style.display === 'flex';
+      dropdown.style.display = isShowing ? 'none' : 'flex';
+      if (!isShowing) renderAgents();
+    });
+    
+    document.addEventListener('click', (e) => {
+      if (!menuBtn.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.style.display = 'none';
+      }
+    });
+    
+    function renderAgents() {
+      const agents = JSON.parse(localStorage.getItem(KEY_MISSION_AGENTS) || '[]');
+      if (agents.length === 0) {
+        agentContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 0.75rem; color: var(--text-muted);">No agents found.</div>';
+        return;
+      }
+      
+      agentContainer.innerHTML = '';
+      agents.forEach(agent => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        
+        const header = document.createElement('div');
+        header.style.fontWeight = '500';
+        header.textContent = agent.name;
+        header.onclick = (e) => {
+          e.stopPropagation();
+          document.querySelectorAll('.dropdown-item').forEach(i => {
+            if (i !== item) i.classList.remove('expanded');
+          });
+          item.classList.toggle('expanded');
+        };
+        item.appendChild(header);
+        
+        const subMenu = document.createElement('div');
+        subMenu.className = 'agent-submenu';
+        
+        const btnSwitch = document.createElement('button');
+        btnSwitch.className = 'submenu-btn';
+        btnSwitch.textContent = 'Switch to this agent';
+        btnSwitch.onclick = () => {
+          currentAgentConfig = agent;
+          modeSelect.value = 'custom';
+          dropdown.style.display = 'none';
+          showToast(`Switched to ${agent.name}`);
+        };
+        
+        const btnAppend = document.createElement('button');
+        btnAppend.className = 'submenu-btn primary';
+        btnAppend.textContent = "Append current chat to agent's memory";
+        btnAppend.onclick = () => appendToAgent(agent);
+        
+        subMenu.appendChild(btnSwitch);
+        subMenu.appendChild(btnAppend);
+        item.appendChild(subMenu);
+        agentContainer.appendChild(item);
+      });
+    }
+    
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.style.opacity = 1;
+      setTimeout(() => toast.style.opacity = 0, 3000);
+    }
+    
+    function appendToAgent(agent) {
+      if (chatHistory.length === 0) {
+        showToast("No messages to append yet!");
+        return;
+      }
+      
+      try {
+        const store = JSON.parse(localStorage.getItem(KEY_STORE)) || { currentId: null, sessions: {} };
+        let sid = agent.chat_id;
+        
+        // Ensure agent has a chat
+        if (!sid || !store.sessions[sid]) {
+          sid = Date.now().toString();
+          store.sessions[sid] = { timestamp: Date.now(), title: `Agent: ${agent.name}`, messages: [] };
+          agent.chat_id = sid;
+          const agents = JSON.parse(localStorage.getItem(KEY_MISSION_AGENTS) || '[]');
+          const idx = agents.findIndex(a => a.name === agent.name);
+          if (idx !== -1) { agents[idx] = agent; localStorage.setItem(KEY_MISSION_AGENTS, JSON.stringify(agents)); }
+        }
+        
+        // Append history
+        store.sessions[sid].messages = store.sessions[sid].messages.concat(chatHistory);
+        store.sessions[sid].timestamp = Date.now();
+        localStorage.setItem(KEY_STORE, JSON.stringify(store));
+        
+        chatHistory = [];
+        document.getElementById('chat-area').innerHTML = '<div class="msg assistant">Conversation appended to ' + agent.name + ' and cleared here.</div>';
+        dropdown.style.display = 'none';
+        showToast("Successfully appended!");
+        
+        // Clear widget session if it had one
+        widgetSessionId = null;
+      } catch(e) {
+        console.error(e);
+        showToast("Error appending to agent.");
+      }
+    }
+
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('user-input');
+
+    let currentImageBase64 = null;
+    const captureBtn = document.getElementById('capture-btn');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    const imagePreview = document.getElementById('image-preview');
+    const removeImageBtn = document.getElementById('remove-image-btn');
+
+    captureBtn.addEventListener('click', () => {
+      ipcRenderer.send('start-screen-capture');
+      captureBtn.style.color = 'var(--primary)';
+    });
+
+    ipcRenderer.on('screenshot-captured', (event, base64) => {
+      currentImageBase64 = base64;
+      imagePreview.src = base64;
+      imagePreviewContainer.style.display = 'block';
+      captureBtn.style.color = 'var(--text-muted)';
+      input.focus();
+    });
+
+    removeImageBtn.addEventListener('click', () => {
+      currentImageBase64 = null;
+      imagePreviewContainer.style.display = 'none';
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      const imageToSend = currentImageBase64;
+      if (!text && !imageToSend) return;
+      
+      const userMsg = document.createElement('div');
+      userMsg.className = 'msg user';
+      if (imageToSend) {
+        const img = document.createElement('img');
+        img.src = imageToSend;
+        img.style.maxWidth = '100%';
+        img.style.borderRadius = '8px';
+        img.style.marginBottom = '8px';
+        userMsg.appendChild(img);
+        
+        currentImageBase64 = null;
+        imagePreviewContainer.style.display = 'none';
+      }
+      if (text) {
+        const textSpan = document.createElement('div');
+        textSpan.textContent = text;
+        userMsg.appendChild(textSpan);
+      }
+      
+      chatArea.appendChild(userMsg);
+      
+      input.value = '';
+      chatArea.scrollTop = chatArea.scrollHeight;
+      
+      const thinking = document.createElement('div');
+      thinking.className = 'msg-thinking';
+      thinking.textContent = 'Thinking...';
+      chatArea.appendChild(thinking);
+      chatArea.scrollTop = chatArea.scrollHeight;
+      
+      // Handle Persistence
+      if (behavior === 'new_chat' || (behavior === 'specific_agent' && modeSelect.value === 'custom')) {
+        if (!widgetSessionId) {
+          widgetSessionId = Date.now().toString();
+          const store = JSON.parse(localStorage.getItem(KEY_STORE)) || { currentId: null, sessions: {} };
+          store.sessions[widgetSessionId] = { timestamp: Date.now(), title: "Widget Chat", messages: [] };
+          localStorage.setItem(KEY_STORE, JSON.stringify(store));
+        }
+      }
+      
+      try {
+        const routingVal = document.getElementById('hf-routing-slider').value;
+        const routingMap = {
+          "1": "cheapest",
+          "2": "fastest"
+        };
+        
+        let payload = {
+          message: text,
+          history: chatHistory,
+          mode: modeSelect.value,
+          is_floating_widget: true,
+          hf_routing: routingMap[routingVal] || "cheapest",
+          model: document.getElementById('widget-model-select').value,
+          api_key: localStorage.getItem('vibe_api_key') || '',
+          hf_api_key: localStorage.getItem('vibe_hf_api_key') || '',
+          hf_router: localStorage.getItem('vibe_hf_router') || '',
+          openai_api_key: localStorage.getItem('vibe_openai_api_key') || '',
+          anthropic_api_key: localStorage.getItem('vibe_anthropic_api_key') || '',
+          web_urls: [],
+          web_auto_search: localStorage.getItem('vibe_web_auto') !== 'false'
+        };
+        
+        if (imageToSend) {
+          payload.image_base64 = imageToSend;
+        }
+        
+        if (modeSelect.value === 'custom' && currentAgentConfig) {
+          payload.mode_config = {
+            name: "Widget Agent",
+            agents: [currentAgentConfig]
+          };
+        }
+        
+        const response = await fetch('http://localhost:5000/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        chatArea.removeChild(thinking);
+        
+        if (data.error) {
+          const errMsg = document.createElement('div');
+          errMsg.className = 'msg assistant';
+          errMsg.style.color = '#ef4444';
+          errMsg.textContent = "Error: " + data.error;
+          chatArea.appendChild(errMsg);
+        } else {
+          chatHistory.push({ role: 'user', content: text });
+          chatHistory.push({ role: 'assistant', content: data.reply });
+          
+          if (widgetSessionId) {
+             const store = JSON.parse(localStorage.getItem(KEY_STORE)) || { currentId: null, sessions: {} };
+             if (store.sessions[widgetSessionId]) {
+               store.sessions[widgetSessionId].messages = chatHistory;
+               store.sessions[widgetSessionId].timestamp = Date.now();
+               localStorage.setItem(KEY_STORE, JSON.stringify(store));
+             }
+          }
+          
+          const assistantMsg = document.createElement('div');
+          assistantMsg.className = 'msg assistant';
+          
+          let tracesHtml = '';
+          if (Array.isArray(data.traces) && data.traces.length > 0) {
+            const trs = data.traces.map(t => `<div style="margin-bottom:6px; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.05);"><strong style="color:var(--primary); font-size:0.65rem;">${t.agent}</strong><div style="font-size:0.65rem; opacity:0.8; white-space:pre-wrap;">${t.content}</div></div>`).join('');
+            tracesHtml = `<details style="margin-bottom:8px; background:rgba(0,0,0,0.15); padding:6px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+                <summary style="font-size:0.65rem; opacity:0.8; cursor:pointer;">Show Reasoning Traces (${data.traces.length} steps)</summary>
+                <div style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1);">
+                  ${trs}
+                </div>
+              </details>`;
+          }
+          
+          if (Array.isArray(data.web_sources) && data.web_sources.length > 0) {
+            const urls = data.web_sources.map(s => `<a href="${s.url}" target="_blank" style="color:var(--primary);text-decoration:none;">${s.title || s.url}</a>`).join(', ');
+            tracesHtml += `<div style="margin-bottom:8px;padding:6px;border-radius:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);font-size:0.7rem;opacity:0.9;">🌐 <strong>Searched Web:</strong> ${urls}</div>`;
+          }
+          
+          // Use marked for markdown formatting if available, fallback to textContent
+          if (typeof marked !== 'undefined') {
+            assistantMsg.innerHTML = tracesHtml + marked.parse(data.reply);
+          } else {
+            assistantMsg.innerHTML = tracesHtml;
+            const textNode = document.createTextNode(data.reply);
+            assistantMsg.appendChild(textNode);
+          }
+          chatArea.appendChild(assistantMsg);
+        }
+      } catch (err) {
+        chatArea.removeChild(thinking);
+        const errMsg = document.createElement('div');
+        errMsg.className = 'msg assistant';
+        errMsg.style.color = '#ef4444';
+        errMsg.textContent = "Could not reach backend. Is the Flask app running?";
+        chatArea.appendChild(errMsg);
+      }
+      
+      chatArea.scrollTop = chatArea.scrollHeight;
+    });
+  </script>
+</body>
+</html>

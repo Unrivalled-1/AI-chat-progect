@@ -1,0 +1,18 @@
+<div id="memory-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Memory Center</h3>
+        <div class="memory-tabs">
+          <button class="memory-tab active" data-tab="shared">Shared Notes</button>
+          <button class="memory-tab" data-tab="agents">Agent Memories</button>
+          <button class="memory-tab" data-tab="system">System Notes</button>
+          <button class="memory-tab" data-tab="activity">Activity Log</button>
+        </div>
+        <button id="memory-close" class="hdr-btn modal-close">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:10px;">
+        <div id="memory-help" style="font-size:0.75rem;line-height:1.45;color:var(--text-muted);padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--header-bg);"></div>
+        <div id="memory-content" class="memory-pre" style="white-space:normal;"></div>
+      </div>
+    </div>
+  </div>
